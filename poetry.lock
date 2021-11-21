@@ -1,0 +1,110 @@
+[[package]]
+name = "blahblah"
+version = "1.3.2"
+description = "Fake data generator for district42 schema"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+district42 = ">=1.3.1,<1.4"
+niltype = ">=0.3,<1.0"
+
+[[package]]
+name = "bump2version"
+version = "1.0.1"
+description = "Version-bump your software with a single command!"
+category = "dev"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
+name = "district42"
+version = "1.3.8"
+description = "Data description language for defining data models"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+niltype = ">=0.3,<1.0"
+
+[[package]]
+name = "niltype"
+version = "0.3.1"
+description = "Like a None"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
+name = "revolt"
+version = "1.3.5"
+description = "Value substitutor for district42 schema"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+district42 = ">=1.3.4,<1.4"
+niltype = ">=0.3,<1.0"
+valera = ">=1.3.1,<1.4"
+
+[[package]]
+name = "th"
+version = "0.3.1"
+description = "Safely accessing deeply nested values"
+category = "main"
+optional = false
+python-versions = ">=3.6.0"
+
+[package.dependencies]
+niltype = ">=0.3,<1.0"
+
+[[package]]
+name = "valera"
+version = "1.3.2"
+description = "Validator for district42 schema"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+district42 = ">=1.3.1,<1.4"
+niltype = ">=0.3,<1.0"
+th = ">=0.3,<1.0"
+
+[metadata]
+lock-version = "1.1"
+python-versions = "^3.8"
+content-hash = "3dc8e7fa01b20399ef5089fac213c3484c58417648245d4e8151ef3770472f62"
+
+[metadata.files]
+blahblah = [
+    {file = "blahblah-1.3.2-py3-none-any.whl", hash = "sha256:eaa9506293c363090aeb4707afbbec780ae0225b0b1f681d5eebd9e5cdb575b4"},
+    {file = "blahblah-1.3.2.tar.gz", hash = "sha256:e66e07c3fe26d66c232906fbb46a62fcb3ea78e76795afa11039021eb3a0298d"},
+]
+bump2version = [
+    {file = "bump2version-1.0.1-py2.py3-none-any.whl", hash = "sha256:37f927ea17cde7ae2d7baf832f8e80ce3777624554a653006c9144f8017fe410"},
+    {file = "bump2version-1.0.1.tar.gz", hash = "sha256:762cb2bfad61f4ec8e2bdf452c7c267416f8c70dd9ecb1653fd0bbb01fa936e6"},
+]
+district42 = [
+    {file = "district42-1.3.8-py3-none-any.whl", hash = "sha256:4e5de211ac5e1a1a9eb4c982f8c862d0df9236a1a62cfa0197e237ace2af1ada"},
+    {file = "district42-1.3.8.tar.gz", hash = "sha256:06612510a16de9a5877cd499d6acc82aa60760b602fb3a38cf4362e8b1e3e6dd"},
+]
+niltype = [
+    {file = "niltype-0.3.1-py3-none-any.whl", hash = "sha256:41f0fc43678dfc20d1038dc3708bc6efe52f480a32b483c24c4f5be38749319d"},
+    {file = "niltype-0.3.1.tar.gz", hash = "sha256:4d766c8672bdd6365a8babad86227125c38c628ae29de39425c3c1188623f5db"},
+]
+revolt = [
+    {file = "revolt-1.3.5-py3-none-any.whl", hash = "sha256:19b4e08c6326423b9145ea3de16c06c5379e5a8f6aab5f0df4dc59e7e6480c74"},
+    {file = "revolt-1.3.5.tar.gz", hash = "sha256:01003a96387b9f586abd8f595bc38d2bbaf1b6b73ea518c29111a3c513a3f010"},
+]
+th = [
+    {file = "th-0.3.1-py3-none-any.whl", hash = "sha256:087b4d16250851551f3acbbbca5130218d049351539f8a998de33d5b322f7010"},
+    {file = "th-0.3.1.tar.gz", hash = "sha256:e510393a192bfb1378075f2e40c1d414e4d7a1622bec925f1cf9df7886a05f86"},
+]
+valera = [
+    {file = "valera-1.3.2-py3-none-any.whl", hash = "sha256:dc9a8f275eb856d539ecc74f2ca76368ae5bf72b563e7da2d9deadfe5438c736"},
+    {file = "valera-1.3.2.tar.gz", hash = "sha256:d06c30355d6c9a0e91e1cbf5d255a82eefe936931cef24c3c5524e73ce485965"},
+]
