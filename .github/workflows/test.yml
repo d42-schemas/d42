@@ -1,0 +1,44 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - 'master'
+  schedule:
+    # every Wed at 07:00 UTC
+    - cron:  '0 7 * * 3'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: abatilo/actions-poetry@v2.0.0
+    - name: Install dependencies
+      run: make install
+    - name: Lint
+      run: make lint
+    - name: Test
+      run: make test
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - uses: abatilo/actions-poetry@v2.0.0
+    - name: Build
+      run: make build
