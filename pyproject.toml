@@ -6,6 +6,13 @@ authors = ["Nikita Tsvetkov <nikitanovosibirsk@yandex.com>"]
 repository = "https://github.com/nikitanovosibirsk/d42"
 license = "Apache-2.0"
 include = ["d42/py.typed"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Typing :: Typed",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -16,6 +23,7 @@ revolt = "~1.3"
 
 [tool.poetry.dev-dependencies]
 bump2version = "^1.0.1"
+isort = "^5.10.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
