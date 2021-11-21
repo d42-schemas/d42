@@ -5,4 +5,4 @@ from valera import validate, validate_or_fail
 
 __all__ = ("schema", "optional", "from_native", "register_type",
            "fake", "validate", "validate_or_fail",)
-__version__ = "0.0.1"
+__version__ = "1.3.0"
