@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "d42"
-version = "0.0.1"
+version = "1.3.0"
 description = ""
 authors = ["Nikita Tsvetkov <nikitanovosibirsk@yandex.com>"]
 repository = "https://github.com/nikitanovosibirsk/d42"
