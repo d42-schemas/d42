@@ -1,13 +1,13 @@
 [[package]]
 name = "blahblah"
-version = "1.3.2"
+version = "1.5.0"
 description = "Fake data generator for district42 schema"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 
 [package.dependencies]
-district42 = ">=1.3.1,<1.4"
+district42 = ">=1.5.0,<1.6"
 niltype = ">=0.3,<1.0"
 
 [[package]]
@@ -20,7 +20,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "district42"
-version = "1.3.8"
+version = "1.5.0"
 description = "Data description language for defining data models"
 category = "main"
 optional = false
@@ -53,16 +53,16 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "revolt"
-version = "1.3.5"
+version = "1.5.0"
 description = "Value substitutor for district42 schema"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 
 [package.dependencies]
-district42 = ">=1.3.4,<1.4"
+district42 = ">=1.5.0,<1.6"
 niltype = ">=0.3,<1.0"
-valera = ">=1.3.1,<1.4"
+valera = ">=1.5.0,<1.6"
 
 [[package]]
 name = "th"
@@ -77,34 +77,34 @@ niltype = ">=0.3,<1.0"
 
 [[package]]
 name = "valera"
-version = "1.3.2"
+version = "1.5.0"
 description = "Validator for district42 schema"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 
 [package.dependencies]
-district42 = ">=1.3.1,<1.4"
+district42 = ">=1.5.0,<1.6"
 niltype = ">=0.3,<1.0"
 th = ">=0.3,<1.0"
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d6fbe86f5482159fe1402653a7a7f57b7875d823e5e71a1c4571004fcfc5d70b"
+content-hash = "a3805789c88a3798aad4e0f32529ae733bf889a86785ecbb58e7df31850039cf"
 
 [metadata.files]
 blahblah = [
-    {file = "blahblah-1.3.2-py3-none-any.whl", hash = "sha256:eaa9506293c363090aeb4707afbbec780ae0225b0b1f681d5eebd9e5cdb575b4"},
-    {file = "blahblah-1.3.2.tar.gz", hash = "sha256:e66e07c3fe26d66c232906fbb46a62fcb3ea78e76795afa11039021eb3a0298d"},
+    {file = "blahblah-1.5.0-py3-none-any.whl", hash = "sha256:9ecabcd18a855a0f1ab4fe76877813f21ad45b755982202af8ddf11a1911c3eb"},
+    {file = "blahblah-1.5.0.tar.gz", hash = "sha256:b497219e17b29c63a22fc3a0d747e46b70c690f9ac7ce3a9fb28ef0506de2cad"},
 ]
 bump2version = [
     {file = "bump2version-1.0.1-py2.py3-none-any.whl", hash = "sha256:37f927ea17cde7ae2d7baf832f8e80ce3777624554a653006c9144f8017fe410"},
     {file = "bump2version-1.0.1.tar.gz", hash = "sha256:762cb2bfad61f4ec8e2bdf452c7c267416f8c70dd9ecb1653fd0bbb01fa936e6"},
 ]
 district42 = [
-    {file = "district42-1.3.8-py3-none-any.whl", hash = "sha256:4e5de211ac5e1a1a9eb4c982f8c862d0df9236a1a62cfa0197e237ace2af1ada"},
-    {file = "district42-1.3.8.tar.gz", hash = "sha256:06612510a16de9a5877cd499d6acc82aa60760b602fb3a38cf4362e8b1e3e6dd"},
+    {file = "district42-1.5.0-py3-none-any.whl", hash = "sha256:6753898679b95a83bccf43310ca778a0d9dada0d411b8571f598de6bd09c762b"},
+    {file = "district42-1.5.0.tar.gz", hash = "sha256:256d78c00a56e069fa017e9407be0f96cd75de6ed1bd36402c758ac98e6aab2e"},
 ]
 isort = [
     {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
@@ -115,14 +115,14 @@ niltype = [
     {file = "niltype-0.3.1.tar.gz", hash = "sha256:4d766c8672bdd6365a8babad86227125c38c628ae29de39425c3c1188623f5db"},
 ]
 revolt = [
-    {file = "revolt-1.3.5-py3-none-any.whl", hash = "sha256:19b4e08c6326423b9145ea3de16c06c5379e5a8f6aab5f0df4dc59e7e6480c74"},
-    {file = "revolt-1.3.5.tar.gz", hash = "sha256:01003a96387b9f586abd8f595bc38d2bbaf1b6b73ea518c29111a3c513a3f010"},
+    {file = "revolt-1.5.0-py3-none-any.whl", hash = "sha256:63bc4e428e9dd62963ad66bbee02f17716996f7076c8ac37b423933b5540bf6a"},
+    {file = "revolt-1.5.0.tar.gz", hash = "sha256:aae231c10627ed8effa776953d7430dd270846e4c6cea36b2b3a034714442636"},
 ]
 th = [
     {file = "th-0.3.1-py3-none-any.whl", hash = "sha256:087b4d16250851551f3acbbbca5130218d049351539f8a998de33d5b322f7010"},
     {file = "th-0.3.1.tar.gz", hash = "sha256:e510393a192bfb1378075f2e40c1d414e4d7a1622bec925f1cf9df7886a05f86"},
 ]
 valera = [
-    {file = "valera-1.3.2-py3-none-any.whl", hash = "sha256:dc9a8f275eb856d539ecc74f2ca76368ae5bf72b563e7da2d9deadfe5438c736"},
-    {file = "valera-1.3.2.tar.gz", hash = "sha256:d06c30355d6c9a0e91e1cbf5d255a82eefe936931cef24c3c5524e73ce485965"},
+    {file = "valera-1.5.0-py3-none-any.whl", hash = "sha256:2bfec6cfaa740a18ac0c89323bb47dbd967f4480566a98697fc104b9117c239e"},
+    {file = "valera-1.5.0.tar.gz", hash = "sha256:3b0fafc3a850c76fe7438ca5e06870722366a13bbbfbfeb6a1860f7be1c46cb2"},
 ]

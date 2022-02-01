@@ -17,10 +17,10 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-district42 = "~1.3"
-blahblah = "~1.3"
-valera = "~1.3"
-revolt = "~1.3"
+district42 = "~1.5"
+blahblah = "~1.5"
+valera = "~1.5"
+revolt = "~1.5"
 
 [tool.poetry.dev-dependencies]
 bump2version = "^1.0.1"
