@@ -9,7 +9,7 @@ class TestImports(unittest.TestCase):
         from d42 import fake  # noqa
 
     def test_valera(self):
-        from d42 import validate, validate_or_fail  # noqa
+        from d42 import ValidationException, validate, validate_or_fail  # noqa
 
     def test_revolt(self):
         from d42 import schema
