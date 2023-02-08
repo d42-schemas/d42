@@ -3,7 +3,7 @@ import unittest
 
 class TestImports(unittest.TestCase):
     def test_district42(self):
-        from d42 import from_native, optional, register_type, schema  # noqa
+        from d42 import from_native, make_required, optional, register_type, schema  # noqa
 
     def test_blahblah(self):
         from d42 import fake  # noqa
