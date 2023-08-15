@@ -8,7 +8,7 @@ try:
 except AttributeError:
     from typing import Any
 
-    def make_required(*args: Any, **kwargs) -> Any:
+    def make_required(schema: Any, keys: Any = None) -> Any:
         raise ValueError("make_required is not available in district42 < 1.5.1")
 
 schema = district42.schema
@@ -22,9 +22,12 @@ validate = valera.validate
 validate_or_fail = valera.validate_or_fail
 ValidationException = valera.ValidationException
 
+substitute = revolt.substitute
+
 __all__ = (
     "schema", "optional", "from_native", "register_type", "make_required",
     "fake",
     "validate", "validate_or_fail", "ValidationException",
+    "substitute",
 )
 __version__ = "1.5.1"
