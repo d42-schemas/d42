@@ -2,3 +2,5 @@ district42>=1.6,<1.7
 blahblah>=1.6,<1.7
 valera>=1.6,<1.7
 revolt>=1.6,<1.7
+niltype>=0.3,<2.0
+th>=0.3,<1.0

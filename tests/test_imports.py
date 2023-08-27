@@ -14,3 +14,27 @@ class TestImports(unittest.TestCase):
     def test_revolt(self):
         from d42 import schema
         assert schema.str % "revolt" == schema.str("revolt")
+
+    def test_custom_type(self):
+        from d42.custom_type import (  # noqa
+            CustomSchema,
+            Formatter,
+            PathHolder,
+            Props,
+            PropsType,
+            Schema,
+            ValidationResult,
+        )
+
+    def test_custom_type_visitors(self):
+        from d42.custom_type.visitors import Generator, Representor, Substitutor, Validator  # noqa
+
+    def test_custom_type_errors(self):
+        from d42.custom_type.errors import (  # noqa
+            DeclarationError,
+            SubstitutionError,
+            ValidationError,
+        )
+
+    def test_custom_type_utils(self):
+        from d42.custom_type.utils import make_substitution_error, register_type  # noqa
