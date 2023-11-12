@@ -20,10 +20,10 @@ setup(
     author="Nikita Tsvetkov",
     author_email="tsv1@fastmail.com",
     python_requires=">=3.8",
-    url="https://github.com/tsv1/d42",
+    url="https://github.com/d42-schemas/d42",
     project_urls={
         "Docs": "https://d42.vedro.io",
-        "GitHub": "https://github.com/tsv1/d42",
+        "GitHub": "https://github.com/d42-schemas/d42",
     },
     license="Apache-2.0",
     packages=find_packages(exclude=["tests", "tests.*"]),
