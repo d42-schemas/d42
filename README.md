@@ -26,4 +26,4 @@ assert validate_or_fail(sch, fake(sch))
 
 ## Documentation
 
-For detailed documentation, visit the [official d42 documentation](https://d42.vedro.io/).
+For detailed documentation, visit the [official d42 documentation](https://d42.sh).
