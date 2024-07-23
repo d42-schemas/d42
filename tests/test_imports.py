@@ -48,3 +48,7 @@ def test_custom_type_utils():
         make_invalid_type_error,
         make_substitution_error,
     )
+
+
+def test_utils():
+    from d42.utils import is_ellipsis, rollout  # noqa
