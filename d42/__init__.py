@@ -9,7 +9,7 @@ except AttributeError:
     from typing import Any
 
     def make_required(schema: Any, keys: Any = None) -> Any:
-        raise ValueError("make_required is not available in district42 < 1.8.0")
+        raise ValueError("make_required is not available in district42 < 1.9.0")
 
 schema = district42.schema
 optional = district42.optional
@@ -30,6 +30,6 @@ __all__ = (
     "validate", "validate_or_fail", "ValidationException",
     "substitute",
 )
-__version__ = "1.8.0"
+__version__ = "1.9.0"
 
 # utils/rollout
