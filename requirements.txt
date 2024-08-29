@@ -1,6 +1,6 @@
-district42>=1.8,<1.9
-blahblah>=1.8,<1.9
-valera>=1.8,<1.9
-revolt>=1.8,<1.9
+district42>=1.8,<2.0
+blahblah>=1.8,<2.0
+valera>=1.8,<2.0
+revolt>=1.8,<2.0
 niltype>=0.3,<2.0
 th>=0.3,<1.0
