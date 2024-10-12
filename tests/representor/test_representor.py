@@ -4,7 +4,7 @@ from baby_steps import given, then, when
 from pytest import raises
 
 from d42.declaration import Props, Schema
-from d42.representor import Representor
+from d42.representation import Representor
 
 
 def test_representor_name():

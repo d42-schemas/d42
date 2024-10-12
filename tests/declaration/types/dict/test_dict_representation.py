@@ -1,7 +1,7 @@
 from baby_steps import given, then, when
 
 from d42 import optional, schema
-from d42.representor import represent
+from d42.representation import represent
 
 
 def test_dict_representation():

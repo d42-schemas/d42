@@ -3,7 +3,7 @@ from uuid import uuid4
 from baby_steps import given, then, when
 
 from d42 import schema
-from d42.representor import represent
+from d42.representation import represent
 
 
 def test_uuid4_representation():
