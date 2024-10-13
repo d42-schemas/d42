@@ -1,11 +1,11 @@
 from unittest.mock import Mock, call, sentinel
 
 from baby_steps import given, then, when
-from blahblah import Random, RegexGenerator
 from pytest import raises
 
 from d42.custom_type import CustomSchema, Props
 from d42.custom_type.visitors import Generator, Representor, Substitutor, Validator
+from d42.generation import Random, RegexGenerator
 
 
 def test_custom_type_abc():
@@ -34,7 +34,7 @@ def test_custom_type_represent():
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(CustomSchema[Props]):
-            __represent__ = mock
+            __d42_represent__ = mock
 
         representor = Representor()
         custom_type = CustomType()
@@ -69,7 +69,7 @@ def test_custom_type_generate():
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(CustomSchema[Props]):
-            __generate__ = mock
+            __d42_generate__ = mock
 
         random = Random()
         generator = Generator(random, RegexGenerator(random))
@@ -99,7 +99,7 @@ def test_custom_type_generate_error():
 
     with then:
         assert exception.type is NotImplementedError
-        assert str(exception.value) == "CustomType has no attribute '__generate__'"
+        assert str(exception.value) == "CustomType has no method '__generate__'"
 
 
 def test_custom_type_validate():
@@ -107,7 +107,7 @@ def test_custom_type_validate():
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(CustomSchema[Props]):
-            __validate__ = mock
+            __d42_validate__ = mock
 
         validator = Validator()
         custom_type = CustomType()
@@ -135,7 +135,7 @@ def test_custom_type_validate_error():
 
     with then:
         assert exception.type is NotImplementedError
-        assert str(exception.value) == "CustomType has no attribute '__validate__'"
+        assert str(exception.value) == "CustomType has no method '__validate__'"
 
 
 def test_custom_type_substitute():
@@ -143,7 +143,7 @@ def test_custom_type_substitute():
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(CustomSchema[Props]):
-            __substitute__ = mock
+            __d42_substitute__ = mock
 
         substitutor = Substitutor()
         custom_type = CustomType()
@@ -171,4 +171,4 @@ def test_custom_type_substitute_error():
 
     with then:
         assert exception.type is NotImplementedError
-        assert str(exception.value) == "CustomType has no attribute '__substitute__'"
+        assert str(exception.value) == "CustomType has no method '__substitute__'"

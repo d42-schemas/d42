@@ -1,7 +1,7 @@
-from district42 import Props, PropsType, register_type
-from district42.types import Schema
 from th import PathHolder
-from valera import Formatter, ValidationResult
+
+from d42.declaration import Props, PropsType, Schema, register_type
+from d42.validation import Formatter, ValidationResult
 
 from ._custom_type import CustomSchema
 
