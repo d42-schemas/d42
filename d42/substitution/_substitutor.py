@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, cast
 
 from niltype import Nil
 
-from d42.declaration import SchemaVisitor, is_ellipsis
+from d42.declaration import SchemaVisitor
 from d42.declaration.types import (
     AnySchema,
     BoolSchema,
@@ -20,7 +20,7 @@ from d42.declaration.types import (
     TypeAliasPropsType,
     UUID4Schema,
 )
-from d42.utils import from_native
+from d42.utils import from_native, is_ellipsis
 from d42.validation import Formatter, Validator
 
 from ._validator import SubstitutorValidator

@@ -1,7 +1,7 @@
 from typing import Any, Dict, Union
 
-from d42.declaration import is_ellipsis
 from d42.declaration.types import optional
+from d42.utils import is_ellipsis
 
 __all__ = ("rollout",)
 

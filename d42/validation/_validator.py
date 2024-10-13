@@ -8,7 +8,7 @@ from uuid import UUID
 from niltype import Nil, Nilable
 from th import PathHolder
 
-from d42.declaration import GenericSchema, SchemaVisitor, is_ellipsis
+from d42.declaration import GenericSchema, SchemaVisitor
 from d42.declaration.types import (
     AnySchema,
     BoolSchema,
@@ -25,6 +25,7 @@ from d42.declaration.types import (
     TypeAliasPropsType,
     UUID4Schema,
 )
+from d42.utils import is_ellipsis
 
 from ._validation_result import ValidationResult
 from .errors import (

@@ -1,6 +1,5 @@
 from typing import Any, Type, TypeVar, cast
 
-from ._is_ellipsis import EllipsisType, TypeOrEllipsis, is_ellipsis
 from ._props import Props, PropsType
 from ._schema_facade import SchemaFacade
 from ._schema_visitor import SchemaVisitor, SchemaVisitorReturnType
@@ -9,7 +8,7 @@ from .types import AnySchema, GenericSchema, Schema, optional
 
 __all__ = ("schema", "GenericSchema", "Schema", "Props", "PropsType", "SchemaVisitor",
            "SchemaVisitorReturnType", "optional", "register_type", "union",
-           "DeclarationError", "EllipsisType", "TypeOrEllipsis", "is_ellipsis",)
+           "DeclarationError",)
 
 
 schema = SchemaFacade()

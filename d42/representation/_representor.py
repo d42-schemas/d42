@@ -2,7 +2,7 @@ from typing import Any, cast
 
 from niltype import Nil
 
-from d42.declaration import SchemaVisitor, is_ellipsis
+from d42.declaration import SchemaVisitor
 from d42.declaration.types import (
     AnySchema,
     BoolSchema,
@@ -20,6 +20,7 @@ from d42.declaration.types import (
     TypeAliasPropsType,
     UUID4Schema,
 )
+from d42.utils import is_ellipsis
 
 
 class Representor(SchemaVisitor[str]):

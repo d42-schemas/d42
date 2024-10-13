@@ -4,8 +4,8 @@ from typing import Any
 from niltype import Nil, Nilable
 from th import PathHolder
 
-from d42.declaration import is_ellipsis
 from d42.declaration.types import DictSchema, ListSchema
+from d42.utils import is_ellipsis
 from d42.validation import ValidationResult, Validator
 from d42.validation.errors import (
     ExtraKeyValidationError,
