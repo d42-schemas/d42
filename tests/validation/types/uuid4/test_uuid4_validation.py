@@ -69,3 +69,18 @@ def test_uuid4_version_validation_error():
             InvalidUUIDVersionValidationError(PathHolder(), actual_value,
                                               actual_value.version, expected_value.version),
         ]
+
+
+def test_uuid_type_validation_kwargs():
+    with given:
+        expected_value = uuid4()
+        actual_value = uuid4()
+        path = PathHolder().items[0]["key"]
+
+    with when:
+        result = validate(schema.uuid4(expected_value), actual_value, path=path)
+
+    with then:
+        assert result.get_errors() == [
+            ValueValidationError(path, actual_value, expected_value)
+        ]

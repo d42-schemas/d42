@@ -49,3 +49,18 @@ def test_bytes_value_validation_error():
         assert result.get_errors() == [
             ValueValidationError(PathHolder(), actual_value, expected_value),
         ]
+
+
+def test_bool_type_validation_kwargs():
+    with given:
+        expected_value = b"banana"
+        actual_value = b"cucumber"
+        path = PathHolder().items[0]["key"]
+
+    with when:
+        result = validate(schema.bytes(expected_value), actual_value, path=path)
+
+    with then:
+        assert result.get_errors() == [
+            ValueValidationError(path, actual_value, expected_value)
+        ]
