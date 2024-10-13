@@ -23,7 +23,7 @@ def test_representor_visit():
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(Schema[Props]):
-            def __district42__(self, *args, **kwargs) -> str:
+            def __d42__(self, *args, **kwargs) -> str:
                 return mock(*args, **kwargs)
 
         custom_type = CustomType()
@@ -52,4 +52,4 @@ def test_representor_visit_error():
 
     with then:
         assert exception.type is NotImplementedError
-        assert str(exception.value) == "CustomType has no method '__district42__'"
+        assert str(exception.value) == "CustomType has no method '__d42__'"
