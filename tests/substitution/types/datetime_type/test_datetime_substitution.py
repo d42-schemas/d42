@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from baby_steps import given, then, when
 from pytest import raises
 
-from d42 import schema, substitute
+from d42 import schema
+from d42.substitution import substitute
 from d42.substitution.errors import SubstitutionError
 
 

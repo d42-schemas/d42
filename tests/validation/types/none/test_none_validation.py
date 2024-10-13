@@ -1,7 +1,8 @@
 from baby_steps import given, then, when
 from th import PathHolder
 
-from d42 import schema, validate
+from d42 import schema
+from d42.validation import validate
 from d42.validation.errors import TypeValidationError
 
 

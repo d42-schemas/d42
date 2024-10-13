@@ -1,8 +1,8 @@
 from baby_steps import then, when
 from pytest import raises
 
-from d42 import schema, validate, validate_or_fail
-from d42.validation import ValidationException, ValidationResult, eq
+from d42 import schema
+from d42.validation import ValidationException, ValidationResult, eq, validate, validate_or_fail
 
 
 def test_validator_validate_pass():

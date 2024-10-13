@@ -3,7 +3,8 @@ from unittest.mock import sentinel
 from baby_steps import given, then, when
 from pytest import raises
 
-from d42 import optional, schema, substitute
+from d42 import optional, schema
+from d42.substitution import substitute
 from d42.substitution.errors import SubstitutionError
 from d42.utils import from_native
 

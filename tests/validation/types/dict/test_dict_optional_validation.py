@@ -4,7 +4,8 @@ import pytest
 from baby_steps import given, then, when
 from th import PathHolder
 
-from d42 import optional, schema, validate
+from d42 import optional, schema
+from d42.validation import validate
 from d42.validation.errors import ExtraKeyValidationError, TypeValidationError
 
 

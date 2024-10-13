@@ -2,8 +2,9 @@ from baby_steps import given, then, when
 from niltype import Nil
 from pytest import raises
 
-from d42 import schema, substitute
+from d42 import schema
 from d42.declaration.types import TypeAliasSchema
+from d42.substitution import substitute
 from d42.substitution.errors import SubstitutionError
 
 
