@@ -4,7 +4,7 @@ import os
 from d42.migration.migrate_v1_to_v2 import migrate_v1_to_v2
 
 
-def run():
+def run() -> None:
     parser = argparse.ArgumentParser("d42", description="Migrate schemas from v1 to v2")
     parser.add_argument("schema_directory", type=str,
                         help="Path to the directory containing schema files")
