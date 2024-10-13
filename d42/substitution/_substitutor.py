@@ -50,9 +50,10 @@ class Substitutor(SchemaVisitor[GenericSchema]):
             raise SubstitutionError(f"Can't convert {value!r} to schema")
 
     def visit(self, schema: GenericSchema, *, value: Any = Nil, **kwargs: Any) -> GenericSchema:
-        if substitute_method := getattr(schema, "__revolt__", None):
+        if substitute_method := getattr(schema, "__d42_substitute__", None):
             return cast(GenericSchema, substitute_method(self, value=value, **kwargs))
-        raise NotImplementedError(f"{schema.__class__.__name__} has no method '__revolt__'")
+        raise NotImplementedError(
+            f"{schema.__class__.__name__} has no method '__d42_substitute__'")
 
     def visit_none(self, schema: NoneSchema, *, value: Any = Nil, **kwargs: Any) -> NoneSchema:
         result = schema.__accept__(self._validator, value=value)

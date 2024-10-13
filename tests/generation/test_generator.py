@@ -24,7 +24,7 @@ def test_generator_visit(generator: Generator):
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(Schema[Props]):
-            def __blahblah__(self, *args, **kwargs) -> str:
+            def __d42_generate__(self, *args, **kwargs) -> str:
                 return mock(*args, **kwargs)
 
         custom_type = CustomType()
@@ -51,4 +51,4 @@ def test_generator_visit_error(generator: Generator):
 
     with then:
         assert exception.type is NotImplementedError
-        assert str(exception.value) == "CustomType has no method '__blahblah__'"
+        assert str(exception.value) == "CustomType has no method '__d42_generate__'"

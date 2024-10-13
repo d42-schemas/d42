@@ -98,9 +98,9 @@ class Validator(SchemaVisitor[ValidationResult]):
 
     def visit(self, schema: GenericSchema, *, value: Any = Nil, path: Nilable[PathHolder] = Nil,
               **kwargs: Any) -> ValidationResult:
-        if validate_method := getattr(schema, "__valera__", None):
+        if validate_method := getattr(schema, "__d42_validate__", None):
             return cast(ValidationResult, validate_method(self, value=value, path=path, **kwargs))
-        raise NotImplementedError(f"{schema.__class__.__name__} has no method '__valera__'")
+        raise NotImplementedError(f"{schema.__class__.__name__} has no method '__d42_validate__'")
 
     def visit_none(self, schema: NoneSchema, *,
                    value: Any = Nil, path: Nilable[PathHolder] = Nil,

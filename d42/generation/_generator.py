@@ -52,9 +52,9 @@ class Generator(SchemaVisitor[Any]):
         return self._random
 
     def visit(self, schema: GenericSchema, **kwargs: Any) -> Any:
-        if generate_method := getattr(schema, "__blahblah__", None):
+        if generate_method := getattr(schema, "__d42_generate__", None):
             return generate_method(self, **kwargs)
-        raise NotImplementedError(f"{schema.__class__.__name__} has no method '__blahblah__'")
+        raise NotImplementedError(f"{schema.__class__.__name__} has no method '__d42_generate__'")
 
     def visit_none(self, schema: NoneSchema, **kwargs: Any) -> None:
         return None

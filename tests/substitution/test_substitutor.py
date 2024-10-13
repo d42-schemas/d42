@@ -35,7 +35,7 @@ def test_substitutor_visit():
         mock = Mock(return_value=sentinel.visited)
 
         class CustomType(Schema[Props]):
-            def __revolt__(self, *args, **kwargs) -> str:
+            def __d42_substitute__(self, *args, **kwargs) -> str:
                 return mock(*args, **kwargs)
 
         custom_type = CustomType()
@@ -64,4 +64,4 @@ def test_substitutor_visit_error():
 
     with then:
         assert exception.type is NotImplementedError
-        assert str(exception.value) == "CustomType has no method '__revolt__'"
+        assert str(exception.value) == "CustomType has no method '__d42_substitute__'"
