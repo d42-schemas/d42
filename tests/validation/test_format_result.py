@@ -15,7 +15,7 @@ def test_format_result():
 
     with then:
         assert formatted == [
-            "valera.ValidationException",
+            "d42.ValidationException",
             "- Value 'banana' must be <class 'int'>, but <class 'str'> given",
         ]
 

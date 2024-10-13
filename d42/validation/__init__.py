@@ -20,7 +20,7 @@ def validate(schema: GenericSchema, value: Any, **kwargs: Any) -> ValidationResu
     return schema.__accept__(_validator, value=value, **kwargs)
 
 
-class ValidationException(Exception):
+class ValidationException(AssertionError):
     pass
 
 
@@ -43,7 +43,7 @@ def format_result(result: ValidationResult, formatter: Formatter = _formatter) -
     if not result.has_errors():
         return []
     errors = ["- " + e.format(formatter) for e in result.get_errors()]
-    return ["valera.ValidationException"] + errors
+    return ["d42.ValidationException"] + errors
 
 
 Schema.__override__(Schema.__eq__.__name__, eq)
