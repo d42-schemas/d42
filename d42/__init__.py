@@ -5,4 +5,4 @@ from d42.validation import ValidationException, validate, validate_or_fail
 
 __all__ = ("schema", "optional", "fake", "validate", "validate_or_fail", "substitute",
            "ValidationException",)
-__version__ = "2.0.0"
+__version__ = "2.0.1"

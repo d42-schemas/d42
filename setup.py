@@ -13,7 +13,7 @@ def find_dev_required():
 
 setup(
     name="d42",
-    version="2.0.0",
+    version="2.0.1",
     description="Toolkit for defining, generating, validating, and substituting data models with a data description language",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
