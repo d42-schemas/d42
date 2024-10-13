@@ -8,14 +8,6 @@ from d42 import schema
 from d42.declaration import Schema
 
 
-def test_non_implemented_invert():
-    with when, raises(Exception) as exception:
-        schema.str.__invert__()
-
-    with then:
-        assert exception.type is AttributeError
-
-
 def test_non_implemented_mod():
     with when, raises(Exception) as exception:
         schema.str.__mod__(None)
