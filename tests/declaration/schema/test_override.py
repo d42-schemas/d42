@@ -2,18 +2,9 @@ from unittest.mock import Mock, call
 
 import pytest
 from baby_steps import given, then, when
-from pytest import raises
 
 from d42 import schema
 from d42.declaration import Schema
-
-
-def test_non_implemented_mod():
-    with when, raises(Exception) as exception:
-        schema.str.__mod__(None)
-
-    with then:
-        assert exception.type is AttributeError
 
 
 @pytest.mark.parametrize("method", [

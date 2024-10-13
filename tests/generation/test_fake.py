@@ -19,6 +19,6 @@ def test_fake_incorrect_type():
     with then:
         assert exception.type is TypeError
         assert str(exception.value) == (
-            "Expected 'schema' to be an instance of 'district42.types.Schema', "
+            "Expected 'schema' to be an instance of 'd42.declaration.types.Schema', "
             "got <class 'object'> instead"
         )
