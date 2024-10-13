@@ -28,6 +28,9 @@ setup(
     license="Apache-2.0",
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_data={"d42": ["py.typed"]},
+    entry_points={
+        "console_scripts": ["d42 = d42._main:run"]
+    },
     install_requires=find_required(),
     tests_require=find_dev_required(),
     classifiers=[
