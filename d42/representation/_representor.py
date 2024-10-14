@@ -50,6 +50,9 @@ class Representor(SchemaVisitor[str]):
     def visit_int(self, schema: IntSchema, *, indent: int = 0, **kwargs: Any) -> str:
         r = f"{self._name}.int"
 
+        if schema.props.multiple_of is not Nil:
+            r += f".multiple_of({schema.props.multiple_of!r})"
+
         if schema.props.value is not Nil:
             r += f"({schema.props.value!r})"
 
