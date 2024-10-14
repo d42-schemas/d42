@@ -80,6 +80,15 @@ class Substitutor(SchemaVisitor[GenericSchema]):
         return schema.__class__(schema.props.update(value=value))
 
     def visit_str(self, schema: StrSchema, *, value: Any = Nil, **kwargs: Any) -> StrSchema:
+        if isinstance(value, dict):
+            if schema.props.value is Nil:
+                raise SubstitutionError(f"Value not provided ({schema!r})")
+            try:
+                value = schema.props.value.format_map(value)
+            except KeyError as exc:
+                raise SubstitutionError(f"Key {exc} not found ({schema!r})")
+            schema = schema.__class__(schema.props.update(value=value))
+
         result = schema.__accept__(self._validator, value=value)
         if result.has_errors():
             raise make_substitution_error(result, self._formatter)
