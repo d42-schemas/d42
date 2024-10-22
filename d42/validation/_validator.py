@@ -195,6 +195,15 @@ class Validator(SchemaVisitor[ValidationResult]):
         if error := self._validate_type(path, value, str):
             return result.add_error(error)
 
+        if schema.props.inner_schema is not Nil:
+            import json
+            deserialize = json.loads
+            res = schema.props.inner_schema.__accept__(self, value=deserialize(value),
+                                                       path=path, **kwargs)
+            for error in res.get_errors():
+                result.add_error(error)
+            return result
+
         if schema.props.value is not Nil:
             if error := self._validate_value(path, value, schema.props.value):
                 return result.add_error(error)

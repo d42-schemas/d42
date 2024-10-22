@@ -86,6 +86,11 @@ class Generator(SchemaVisitor[Any]):
         return self._random.random_float(min_value, max_value)
 
     def visit_str(self, schema: StrSchema, **kwargs: Any) -> str:
+        if schema.props.inner_schema is not Nil:
+            import json
+            serialize = json.dumps
+            return serialize(schema.props.inner_schema.__accept__(self, **kwargs), default=str)
+
         if schema.props.value is not Nil:
             return schema.props.value
 
