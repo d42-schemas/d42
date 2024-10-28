@@ -87,6 +87,15 @@ class StrSchema(Schema[StrProps]):
 
         return self.__class__(self.props.update(value=value))
 
+    def __add__(self, other: "StrSchema") -> "StrSchema":
+        if not isinstance(other, StrSchema):
+            raise TypeError(
+                f"Unsupported operand type for +: '{self.__class__.__name__}' and {type(other)!r}")
+
+        self_value = self.props.value or self.props.pattern
+        other_value = other.props.value or other.props.pattern
+        return self.__class__(self.props.update(pattern=self_value + other_value, value=Nil))
+
     def __declare_len(self, props: StrProps, length: Any) -> StrProps:
         if not isinstance(length, int):
             raise make_invalid_type_error(self, length, (int,))
