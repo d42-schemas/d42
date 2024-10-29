@@ -92,8 +92,8 @@ class StrSchema(Schema[StrProps]):
             raise TypeError(
                 f"Unsupported operand type for +: '{self.__class__.__name__}' and {type(other)!r}")
 
-        self_value = self.props.value or self.props.pattern
-        other_value = other.props.value or other.props.pattern
+        self_value = re.escape(self.props.value) if self.props.value else self.props.pattern
+        other_value = re.escape(other.props.value) if other.props.value else other.props.pattern
         return self.__class__(self.props.update(pattern=self_value + other_value, value=Nil))
 
     def __declare_len(self, props: StrProps, length: Any) -> StrProps:
