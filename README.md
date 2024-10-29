@@ -1,5 +1,6 @@
 # d42
 
+[![Codecov](https://img.shields.io/codecov/c/github/d42-schemas/d42/master.svg?style=flat-square)](https://codecov.io/gh/d42-schemas/d42)
 [![PyPI](https://img.shields.io/pypi/v/d42.svg?style=flat-square)](https://pypi.python.org/pypi/d42/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/d42?style=flat-square)](https://pypi.python.org/pypi/d42/)
 [![Python Version](https://img.shields.io/pypi/pyversions/d42.svg?style=flat-square)](https://pypi.python.org/pypi/d42/)

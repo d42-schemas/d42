@@ -1,0 +1,10 @@
+coverage:
+  status:
+    project:
+      default:
+        threshold: 5%
+    patch:
+      default:
+        threshold: 100%
+
+github_checks: false
