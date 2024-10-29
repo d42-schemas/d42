@@ -33,4 +33,4 @@ def test_any_iterable_nested():
         res = [x for x in sch]
 
     with then:
-        assert res == [schema.any(schema.str, schema.int), schema.none]
+        assert res == [schema.str, schema.int, schema.none]
