@@ -73,3 +73,39 @@ def test_any_types_with_values_declaration():
 
     with then:
         assert sch.props.types == types
+
+
+def test_any_with_any_and_none_declaration():
+    with when:
+        sch = schema.any(schema.any, schema.none)
+
+    with then:
+        assert sch.props.types == (schema.any, schema.none)
+
+
+def test_any_flatten_nested_schemas():
+    with when:
+        sch = schema.any(
+            schema.any(schema.str, schema.int),
+            schema.none
+        )
+
+    with then:
+        assert sch.props.types == (schema.str, schema.int, schema.none)
+
+
+def test_any_flatten_deeply_nested_schemas():
+    with when:
+        sch = schema.any(
+            schema.any(
+                schema.any(
+                    schema.any(schema.str),
+                    schema.int
+                ),
+                schema.float
+            ),
+            schema.bool
+        )
+
+    with then:
+        assert sch.props.types == (schema.str, schema.int, schema.float, schema.bool)
