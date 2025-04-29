@@ -2,7 +2,7 @@ import re
 from copy import deepcopy
 from datetime import date, datetime
 from math import isclose
-from typing import Any, Callable, List, Optional, Type, cast
+from typing import Any, Callable, Iterator, List, Optional, Sequence, Type, Union, cast
 from uuid import UUID
 
 from niltype import Nil, Nilable
@@ -336,13 +336,52 @@ class Validator(SchemaVisitor[ValidationResult]):
         if schema.props.types is Nil:
             return result
 
+        # Сначала проверяем, есть ли точное совпадение
         for sch_type in schema.props.types:
             res = sch_type.__accept__(self, path=path, value=value, **kwargs)
             if not res.has_errors():
                 return result
 
-        result.add_error(SchemaMismatchValidationError(path, value, schema.props.types))
+        # Проверяем все схемы и собираем ошибки
+        all_results = []
+        for sch_type in schema.props.types:
+            res = sch_type.__accept__(self, path=path, value=value, **kwargs)
+            all_results.append(res)
+
+        # Если все схемы имеют ошибки типа, возвращаем SchemaMismatchValidationError
+        if all(isinstance(e, TypeValidationError) for res in all_results
+               for e in self._flatten_errors(res.get_errors())):
+            return result.add_error(SchemaMismatchValidationError(path, value, schema.props.types))
+
+        # Считаем количество конкретных ошибок для каждой схемы
+        error_counts = []
+        for res in all_results:
+            errors = self._flatten_errors(res.get_errors())
+            # Считаем только конкретные ошибки (игнорируем SchemaMismatchValidationError)
+            concrete_errors = [e for e in errors if
+                               not isinstance(e, SchemaMismatchValidationError)]
+            error_counts.append(len(concrete_errors))
+
+        # Находим минимальное количество ошибок
+        min_errors = min(error_counts)
+
+        # Если несколько схем имеют одинаковое минимальное количество ошибок,
+        # значит лучшую схему найти нельзя
+        if sum(1 for count in error_counts if count == min_errors) > 1:
+            return result.add_error(SchemaMismatchValidationError(path, value, schema.props.types))
+
+        # Находим схему с минимальным количеством ошибок
+        best_result = all_results[error_counts.index(min_errors)]
+        result.add_errors(best_result.get_errors())
         return result
+
+    def _flatten_errors(self, errors:
+                        Sequence[Union[ValidationError, Any]]) -> Iterator[ValidationError]:
+        for error in errors:
+            if hasattr(error, 'get_errors'):
+                yield from self._flatten_errors(error.get_errors())
+            else:
+                yield error
 
     def visit_bytes(self, schema: BytesSchema, *,
                     value: Any = Nil, path: Nilable[PathHolder] = Nil,

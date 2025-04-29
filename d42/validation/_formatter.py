@@ -4,6 +4,7 @@ from typing import Any, Sequence
 from th import PathHolder
 
 from ._abstract_formatter import AbstractFormatter
+from ._validation_result import ValidationResult
 from .errors import (
     AlphabetValidationError,
     ExtraElementValidationError,
@@ -135,8 +136,16 @@ class Formatter(AbstractFormatter):
     def format_schema_missmatch_error(self, error: SchemaMismatchValidationError) -> str:
         actual_type = self._get_type(error.actual_value)
         formatted_path = self._at_path(error.path)
+
+        # Если есть только одна схема, выводим её
+        if len(error.expected_schemas) == 1:
+            return (f"Value {actual_type}{formatted_path} "
+                    f"must match {error.expected_schemas[0]!r}, but {error.actual_value!r} given")
+
+        # Если схем несколько, выводим количество и сообщение
         return (f"Value {actual_type}{formatted_path} "
-                f"must match any of {error.expected_schemas!r}, but {error.actual_value!r} given")
+                f"must match one of {len(error.expected_schemas)} schemas, but "
+                f"{error.actual_value!r} given (best matched schema not found)")
 
     def format_invalid_uuid_version_error(self, error: InvalidUUIDVersionValidationError) -> str:
         actual_type = self._get_type(error.actual_value)
@@ -144,3 +153,11 @@ class Formatter(AbstractFormatter):
         return (f"Value {actual_type}{formatted_path} "
                 f"must be a UUID version {error.expected_version!r}, "
                 f"but {error.actual_value!r} version {error.actual_version!r} given")
+
+    def format_validation_result(self, result: ValidationResult) -> str:
+        errors = result.get_errors()
+        if not errors:
+            return ""
+
+        # Форматируем все ошибки
+        return "\n - ".join(error.format(self) for error in errors)

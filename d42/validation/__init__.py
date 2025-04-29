@@ -26,10 +26,9 @@ class ValidationException(AssertionError):
 
 def validate_or_fail(schema: GenericSchema, value: Any, **kwargs: Any) -> bool:
     result = validate(schema, value, **kwargs)
-    errors = [e.format(_formatter) for e in result.get_errors()]
-    if len(errors) == 0:
+    if not result.has_errors():
         return True
-    message = "\n - " + "\n - ".join(errors)
+    message = "\n - " + _formatter.format_validation_result(result)
     raise ValidationException(message)
 
 
