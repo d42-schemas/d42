@@ -1,5 +1,6 @@
+import sys
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Callable
 from uuid import UUID, uuid4
 
 from niltype import Nil
@@ -115,36 +116,120 @@ class Generator(SchemaVisitor[Any]):
 
         return self._random.random_str(length, alphabet)
 
-    def visit_list(self, schema: ListSchema, **kwargs: Any) -> List[Any]:
-        if schema.props.elements is not Nil:
-            elements = []
-            for elem in schema.props.elements:
-                if is_ellipsis(elem):
-                    continue
-                elements.append(elem.__accept__(self, **kwargs))
-            return elements
+    def generate_unique_items(
+        self,
+        generate_fn: Callable[[], Any],
+        target_count: int,
+        require_internal_uniqueness: bool = False,
+        require_strict_internal_uniqueness: bool = False,
+    ) -> List[Any]:
+        result = []
+        seen = set()
+        attempts = 0
+        max_attempts = sys.getrecursionlimit()
 
-        is_length_specified = False
-        if schema.props.len is not Nil:
-            length = schema.props.len
-            is_length_specified = True
+        if target_count == 0:
+            return []
+
+        for attempts in range(1, max_attempts + 1):
+            item = generate_fn()
+
+            if not self.is_valid_unique_item(item, seen, require_internal_uniqueness,
+                                             require_strict_internal_uniqueness):
+                continue
+
+            result.append(item)
+            seen.add(str(item))
+
+            if len(result) >= target_count:
+                break
         else:
-            min_length = LIST_LEN_MIN
-            if schema.props.min_len is not Nil:
-                min_length = schema.props.min_len
-                is_length_specified = True
-            max_length = LIST_LEN_MAX
-            if schema.props.max_len is not Nil:
-                max_length = schema.props.max_len
-                is_length_specified = True
-            length = self._random.random_int(min_length, max_length)
+            raise RuntimeError(
+                f"Failed to generate {target_count} unique items after {attempts} attempts")
+
+        return result
+
+    def is_valid_unique_item(self, item: Any, seen: set,
+                             require_internal_uniqueness: bool,
+                             require_strict_internal_uniqueness: bool) -> bool:
+        if require_internal_uniqueness and isinstance(item, list):
+            if len(item) != len(set(str(x) for x in item)):
+                return False
+
+            if require_strict_internal_uniqueness and item and all(
+                str(v) == str(item[0]) for v in item):
+                raise RuntimeError("Cannot generate internally unique list from identical values")
+
+        return str(item) not in seen
+
+    def visit_list(self, schema: ListSchema, **kwargs: Any) -> List[Any]:
+        length = self.determine_list_length(schema)
+
+        if schema.props.elements is not Nil:
+            return self.handle_elements_list(schema, length, **kwargs)
 
         if schema.props.type is not Nil:
-            return [schema.props.type.__accept__(self, **kwargs) for _ in range(length)]
+            return self.handle_typed_list(schema, length, **kwargs)
 
-        if is_length_specified:
+        if schema.props.unique:
+            def generate_random_inner():
+                return [
+                    self._random.random_str(self._random.random_int(2, 5), STR_ALPHABET)
+                    for _ in range(self._random.random_int(0, 4))
+                ]
+
+            return self.generate_unique_items(generate_random_inner, target_count=length)
+
+        if length > 0:
             return [[] for _ in range(length)]
         return []
+
+    def determine_list_length(self, schema: ListSchema) -> int:
+        if schema.props.len is not Nil:
+            return schema.props.len
+
+        min_len = schema.props.min_len if schema.props.min_len is not Nil else LIST_LEN_MIN
+        max_len = schema.props.max_len if schema.props.max_len is not Nil else LIST_LEN_MAX
+
+        if min_len > max_len:
+            raise ValueError(f"min_len ({min_len}) cannot be greater than max_len ({max_len})")
+
+        return self._random.random_int(min_len, max_len)
+
+    def handle_elements_list(self, schema: ListSchema, length: int, **kwargs: Any) -> List[Any]:
+        elements = [e for e in schema.props.elements if not is_ellipsis(e)]
+
+        def generate_once():
+            return [elem.__accept__(self, **kwargs) for elem in elements]
+
+        if not schema.props.unique:
+            return generate_once()
+
+        all_same_schema = len(elements) >= 2 and all(str(elements[0]) == str(e) for e in elements)
+        strict_mode = all_same_schema and schema.props.unique
+
+        if schema.props.len is not Nil:
+            return self.generate_unique_items(
+                generate_fn=generate_once,
+                target_count=length,
+                require_internal_uniqueness=True,
+                require_strict_internal_uniqueness=strict_mode,
+            )
+
+        for _ in range(sys.getrecursionlimit()):
+            candidate = generate_once()
+            if len(set(map(str, candidate))) == len(candidate):
+                return candidate
+
+        raise RuntimeError("Failed to generate a list with unique internal values")
+
+    def handle_typed_list(self, schema: ListSchema, length: int, **kwargs: Any) -> List[Any]:
+        generate_fn = lambda: schema.props.type.__accept__(self, **kwargs)
+
+        if schema.props.unique:
+            return self.generate_unique_items(generate_fn=generate_fn, target_count=length)
+
+        return [generate_fn() for _ in range(length)]
 
     def visit_dict(self, schema: DictSchema, **kwargs: Any) -> Dict[Any, Any]:
         generated: Dict[Any, Any] = {}
