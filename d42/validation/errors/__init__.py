@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Tuple, Type
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 from th import PathHolder
 
@@ -35,8 +35,10 @@ class TypeValidationError(ValidationError):
         return formatter.format_type_error(self)
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
-                f"{self.expected_type!r})")
+        return (
+            f"{self.__class__.__name__}({self.path}, {self.actual_value!r}, "
+            f"{self.expected_type})"
+        )
 
 
 class ValueValidationError(ValidationError):
@@ -221,17 +223,37 @@ class ExtraKeyValidationError(ValidationError):
 
 class SchemaMismatchValidationError(ValidationError):
     def __init__(self, path: PathHolder, actual_value: Any,
-                 expected_schemas: Tuple[GenericSchema, ...]) -> None:
+                 expected_schemas: Tuple[GenericSchema, ...],
+                 subschema_errors: Optional[
+                     List[Tuple[int, List[ValidationError]]]] = None) -> None:
         self.path = path
         self.actual_value = actual_value
         self.expected_schemas = expected_schemas
+        self.subschema_errors = subschema_errors
 
     def format(self, formatter: "Formatter") -> str:
+        if self.subschema_errors is None:
+            return formatter.format_schema_missmatch_error(self)
+
+        error_lines = []
+        for index, errors in self.subschema_errors:
+            schema_errors = [e.format(formatter) for e in errors]
+            if schema_errors:
+                error_lines.append(f" | Schema {index + 1}:")
+                error_lines.extend(f" | - {e}" for e in schema_errors)
+
+        if error_lines:
+            p = formatter._format_path(self.path)
+            msg = "Value at {} does not match any of the allowed schemas:\n{}"
+            return msg.format(p, "\n".join(error_lines))
+
         return formatter.format_schema_missmatch_error(self)
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
-                f"{self.expected_schemas!r})")
+        return (
+            f"{self.__class__.__name__}({self.path}, {self.actual_value!r}, "
+            f"{self.expected_schemas}, {self.subschema_errors})"
+        )
 
 
 class InvalidUUIDVersionValidationError(ValidationError):

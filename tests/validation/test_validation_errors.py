@@ -142,10 +142,18 @@ def test_validation_extra_key_error():
 
 def test_validation_schema_mismatch_error():
     with when:
-        res = SchemaMismatchValidationError(PathHolder(), "key", (IntSchema(),))
+        res = SchemaMismatchValidationError(
+            PathHolder(),
+            "key",
+            (IntSchema(),),
+            [(0, [TypeValidationError(PathHolder(), "key", int)])]
+        )
 
     with then:
-        assert repr(res) == "SchemaMismatchValidationError(PathHolder(), 'key', (schema.int,))"
+        assert repr(res) == (
+            "SchemaMismatchValidationError(PathHolder(), 'key', (schema.int,), "
+            "[(0, [TypeValidationError(PathHolder(), 'key', <class 'int'>)])])"
+        )
 
 
 def test_validation_invalid_uuid_version_error():

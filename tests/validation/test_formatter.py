@@ -304,10 +304,9 @@ def test_format_extra_key_error(path: PathHolder, formatted: str, *, formatter: 
 
 
 @pytest.mark.parametrize(("path", "formatted"), [
-    (_, "Value <class 'int'> must match one of 2 schemas, but 42 given "
-        "(best matched schema not found)"),
-    (_["id"], "Value <class 'int'> at _['id'] must match one of 2 schemas, but 42 given "
-              "(best matched schema not found)"),
+    (_, "Value <class 'int'> must match any of (schema.str, schema.none), but 42 given"),
+    (_["id"], "Value <class 'int'> at _['id'] must match any of (schema.str, schema.none), "
+              "but 42 given"),
 ])
 def test_format_schema_missmatch_error(path: PathHolder, formatted: str, *, formatter: Formatter):
     with given:

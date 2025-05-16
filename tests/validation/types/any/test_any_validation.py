@@ -6,11 +6,7 @@ from th import PathHolder
 
 from d42 import schema
 from d42.validation import validate
-from d42.validation.errors import (
-    ExtraKeyValidationError,
-    MissingKeyValidationError,
-    SchemaMismatchValidationError,
-)
+from d42.validation.errors import SchemaMismatchValidationError, TypeValidationError
 
 
 @pytest.mark.parametrize("value", [
@@ -49,7 +45,12 @@ def test_any_type_validation_error():
 
     with then:
         assert result.get_errors() == [
-            SchemaMismatchValidationError(PathHolder(), value, types)
+            SchemaMismatchValidationError(
+                PathHolder(),
+                value,
+                types,
+                [(0, [TypeValidationError(PathHolder(), value, type(None))])]
+            )
         ]
 
 
@@ -66,14 +67,17 @@ def test_any_types_validation_error():
     with given:
         value = None
         types = (schema.int, schema.str)
+        p = PathHolder()
+        e1 = TypeValidationError(p, value, int)
+        e2 = TypeValidationError(p, value, str)
+        errs = [(0, [e1]), (1, [e2])]
 
     with when:
         result = validate(schema.any(*types), value)
 
     with then:
-        assert result.get_errors() == [
-            SchemaMismatchValidationError(PathHolder(), value, types)
-        ]
+        expected = SchemaMismatchValidationError(p, value, types, errs)
+        assert result.get_errors() == [expected]
 
 
 def test_any_type_validation_kwargs():
@@ -86,105 +90,31 @@ def test_any_type_validation_kwargs():
 
     with then:
         assert result.get_errors() == [
-            SchemaMismatchValidationError(path, actual_value, (schema.none,))
+            SchemaMismatchValidationError(path, actual_value, (schema.none,),
+                                          [(0, [TypeValidationError(path,
+                                                                    actual_value, type(None))])])
         ]
 
 
-def test_any_all_schemas_have_type_errors():
+def test_nested_any_validation_error():
     with given:
-        value = 42
-        types = (schema.str, schema.none)
+        value = 3.14  # float value that doesn't match any of the schemas
+        nested_any = schema.any(schema.str, schema.int)
+        outer_any = schema.any(schema.none, nested_any)
 
     with when:
-        result = validate(schema.any(*types), value)
+        result = validate(outer_any, value)
 
     with then:
         assert result.get_errors() == [
-            SchemaMismatchValidationError(PathHolder(), value, types)
-        ]
-
-
-def test_any_one_schema_has_min_errors():
-    with given:
-        value = {"id": "42", "type": "banana"}
-        BananaSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("banana"),
-        })
-        AppleSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("apple"),
-        })
-
-    with when:
-        result = validate(schema.any(BananaSchema, AppleSchema), value)
-
-    with then:
-        assert not result.has_errors()
-
-
-def test_any_multiple_schemas_have_min_errors():
-    with given:
-        value = {"id": "42", "type": "banana"}
-        BananaSchema1 = schema.dict({
-            "id": schema.str,
-            "type": schema.str("banana"),
-        })
-        BananaSchema2 = schema.dict({
-            "id": schema.str,
-            "type": schema.str("banana"),
-        })
-        AppleSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("apple"),
-        })
-
-    with when:
-        result = validate(schema.any(BananaSchema1, BananaSchema2, AppleSchema), value)
-
-    with then:
-        assert not result.has_errors()
-
-
-def test_any_schema_with_extra_fields():
-    with given:
-        value = {"id": "42", "type": "banana", "extra": "field"}
-        BananaSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("banana"),
-        })
-        AppleSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("apple"),
-        })
-
-    with when:
-        result = validate(schema.any(BananaSchema, AppleSchema), value)
-
-    with then:
-        assert result.get_errors() == [
-            ExtraKeyValidationError(PathHolder(), value, "extra")
-        ]
-
-
-def test_any_schema_with_missing_fields():
-    with given:
-        value = {"id": "42", "type": "banana"}
-        BananaSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("banana"),
-            "name": schema.str,
-        })
-        AppleSchema = schema.dict({
-            "id": schema.str,
-            "type": schema.str("apple"),
-            "name": schema.str,
-        })
-
-    with when:
-        result = validate(schema.any(BananaSchema, AppleSchema), value)
-
-    with then:
-        assert result.get_errors() == [
-            MissingKeyValidationError(PathHolder(), value, "name")
+            SchemaMismatchValidationError(
+                PathHolder(),
+                value,
+                (schema.none, schema.str, schema.int),
+                [
+                    (0, [TypeValidationError(PathHolder(), value, type(None))]),
+                    (1, [TypeValidationError(PathHolder(), value, str)]),
+                    (2, [TypeValidationError(PathHolder(), value, int)])
+                ]
+            )
         ]
