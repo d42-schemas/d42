@@ -52,7 +52,7 @@ class ListProps(Props):
         value = self.get("unique")
         if value is Nil:
             return False
-        return value
+        return bool(value)
 
 
 class ListSchema(Schema[ListProps]):
