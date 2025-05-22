@@ -236,7 +236,6 @@ def test_fake_unique_list_with_internal_uniqueness():
 
 def test_fake_unique_list_with_min_max_len():
     with given:
-        min_len = 3
         max_len = 7
         sch = schema.list(schema.int.min(1).max(20)).len(..., max_len).unique()
 
