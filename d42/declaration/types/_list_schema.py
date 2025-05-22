@@ -48,7 +48,7 @@ class ListProps(Props):
         return self.get("max_len")
 
     @property
-    def unique(self) -> Nilable[bool]:
+    def unique(self) -> bool:
         value = self.get("unique")
         if value is Nil:
             return False
