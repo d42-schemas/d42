@@ -1,9 +1,9 @@
 import sys
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Callable
+from typing import Any, Dict, List, Callable, Set, cast
 from uuid import UUID, uuid4
 
-from niltype import Nil
+from niltype import Nil, NilType
 
 from d42.declaration import GenericSchema, SchemaVisitor
 from d42.declaration.types import (
@@ -41,7 +41,6 @@ from ._random import Random
 from ._regex_generator import RegexGenerator
 
 __all__ = ("Generator",)
-
 
 class Generator(SchemaVisitor[Any]):
     def __init__(self, random: Random, regex_generator: RegexGenerator) -> None:
@@ -123,8 +122,8 @@ class Generator(SchemaVisitor[Any]):
         require_internal_uniqueness: bool = False,
         require_strict_internal_uniqueness: bool = False,
     ) -> List[Any]:
-        result = []
-        seen = set()
+        result: List[Any] = []
+        seen: Set[str] = set()
         attempts = 0
         max_attempts = sys.getrecursionlimit()
 
@@ -149,7 +148,7 @@ class Generator(SchemaVisitor[Any]):
 
         return result
 
-    def is_valid_unique_item(self, item: Any, seen: set,
+    def is_valid_unique_item(self, item: Any, seen: Set[str],
                              require_internal_uniqueness: bool,
                              require_strict_internal_uniqueness: bool) -> bool:
         if require_internal_uniqueness and isinstance(item, list):
@@ -172,7 +171,7 @@ class Generator(SchemaVisitor[Any]):
             return self.handle_typed_list(schema, length, **kwargs)
 
         if schema.props.unique:
-            def generate_random_inner():
+            def generate_random_inner() -> List[str]:
                 return [
                     self._random.random_str(self._random.random_int(2, 5), STR_ALPHABET)
                     for _ in range(self._random.random_int(0, 4))
@@ -197,9 +196,12 @@ class Generator(SchemaVisitor[Any]):
         return self._random.random_int(min_len, max_len)
 
     def handle_elements_list(self, schema: ListSchema, length: int, **kwargs: Any) -> List[Any]:
+        if schema.props.elements is Nil:
+            return []
+            
         elements = [e for e in schema.props.elements if not is_ellipsis(e)]
 
-        def generate_once():
+        def generate_once() -> List[Any]:
             return [elem.__accept__(self, **kwargs) for elem in elements]
 
         if not schema.props.unique:
@@ -224,7 +226,11 @@ class Generator(SchemaVisitor[Any]):
         raise RuntimeError("Failed to generate a list with unique internal values")
 
     def handle_typed_list(self, schema: ListSchema, length: int, **kwargs: Any) -> List[Any]:
-        generate_fn = lambda: schema.props.type.__accept__(self, **kwargs)
+        if schema.props.type is Nil:
+            return []
+            
+        def generate_fn() -> Any:
+            return schema.props.type.__accept__(self, **kwargs)
 
         if schema.props.unique:
             return self.generate_unique_items(generate_fn=generate_fn, target_count=length)
