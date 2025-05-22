@@ -101,7 +101,8 @@ def test_fake_unique_list_with_identical_elements():
         fake(sch)
 
     with then:
-        assert "Failed to generate" in str(exception.value) or "Cannot generate" in str(exception.value)
+        assert ("Failed to generate" in str(exception.value) or
+                "Cannot generate" in str(exception.value))
 
 
 def test_fake_unique_list_with_different_constraints():
@@ -216,3 +217,104 @@ def test_fake_list_with_none_elements():
         assert len(result) == 3
         assert all(item is None for item in result)
 
+
+def test_fake_unique_list_with_internal_uniqueness():
+    with given:
+        sch = schema.list(
+            schema.list(schema.int.min(1).max(10)).len(5).unique()
+        ).len(3).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) == 3
+        assert len(set(str(item) for item in result)) == 3
+        assert all(len(set(inner_list)) == 5 for inner_list in result)
+
+
+def test_fake_unique_list_with_min_max_len():
+    with given:
+        min_len = 3
+        max_len = 7
+        sch = schema.list(schema.int.min(1).max(20)).len(..., max_len).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) <= max_len
+        assert len(set(result)) == len(result)
+
+
+def test_fake_unique_list_with_min_len():
+    with given:
+        min_len = 5
+        sch = schema.list(schema.int.min(1).max(100)).len(min_len, ...).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) >= min_len
+        assert len(set(result)) == len(result)
+
+
+def test_fake_unique_list_with_boolean_values():
+    with given:
+        sch = schema.list(schema.bool).len(2).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert len(set(result)) == 2
+        assert True in result
+        assert False in result
+
+
+def test_fake_unique_list_with_datetime():
+    with given:
+        sch = schema.list(schema.datetime).len(5).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) == 5
+        assert len(set(result)) == 5
+
+
+def test_fake_unique_list_with_empty_elements():
+    with given:
+        sch = schema.list([]).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) == 0
+
+
+def test_fake_unique_list_with_any_schema():
+    with given:
+        sch = schema.list(schema.any(
+            schema.str,
+            schema.int.min(1).max(100),
+            schema.bool
+        )).len(10).unique()
+
+    with when:
+        result = fake(sch)
+
+    with then:
+        assert isinstance(result, list)
+        assert len(result) == 10
+        assert len(set(str(x) for x in result)) == 10
