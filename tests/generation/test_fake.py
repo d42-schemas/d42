@@ -159,7 +159,6 @@ def test_fake_unique_list_of_lists():
         assert len(result) == 3
         assert all(isinstance(item, list) and len(item) == 2 for item in result)
         assert all(1 <= x <= 5 for item in result for x in item)
-        # Проверяем, что списки уникальны (как строковые представления)
         assert len(set(str(item) for item in result)) == 3
 
 
@@ -176,7 +175,6 @@ def test_fake_nested_lists_with_uniqueness():
         assert isinstance(result, list)
         assert len(result) == 2
         assert all(isinstance(item, list) and len(item) == 3 for item in result)
-        # Проверяем, что внутренние элементы уникальны в своих списках
         assert all(len(set(inner_list)) == 3 for inner_list in result)
 
 
