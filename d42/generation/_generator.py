@@ -1,6 +1,6 @@
 import sys
 from datetime import date, datetime, timedelta
-from typing import Any, Callable, Dict, List, Set
+from typing import Any, Callable, Dict, List
 from uuid import UUID, uuid4
 
 from niltype import Nil
@@ -41,6 +41,26 @@ from ._random import Random
 from ._regex_generator import RegexGenerator
 
 __all__ = ("Generator",)
+
+
+class UniqueSet:
+    def __init__(self) -> None:
+        self._items: Dict[Any, None] = {}
+
+    def add(self, item: Any) -> None:
+        try:
+            self._items[item] = None
+        except (TypeError, ValueError):
+            self._items[id(item)] = None
+
+    def __contains__(self, item: Any) -> bool:
+        try:
+            return item in self._items
+        except (TypeError, ValueError):
+            return id(item) in self._items
+
+    def __len__(self) -> int:
+        return len(self._items)
 
 
 class Generator(SchemaVisitor[Any]):
@@ -116,54 +136,42 @@ class Generator(SchemaVisitor[Any]):
 
         return self._random.random_str(length, alphabet)
 
-    def generate_unique_items(
-        self,
-        generate_fn: Callable[[], Any],
-        target_count: int,
-        require_internal_uniqueness: bool = False,
-        require_strict_internal_uniqueness: bool = False,
-    ) -> List[Any]:
-        result: List[Any] = []
-        seen: Set[str] = set()
-        attempts = 0
-        max_attempts = sys.getrecursionlimit()
+    def is_unique_list(self, items: List[Any]) -> bool:
+        if not items:
+            return True
 
+        unique_items = UniqueSet()
+        for item in items:
+            if item in unique_items:
+                return False
+            unique_items.add(item)
+
+        return True
+
+    def generate_unique_items(self, generate_fn: Callable[[], Any],
+                              target_count: int) -> List[Any]:
         if target_count == 0:
             return []
 
-        for attempts in range(1, max_attempts + 1):
+        result = []
+        unique_items = UniqueSet()
+        max_attempts = sys.getrecursionlimit()
+
+        for _ in range(max_attempts):
             item = generate_fn()
 
-            if not self.is_valid_unique_item(
-                    item,
-                    seen,
-                    require_internal_uniqueness,
-                    require_strict_internal_uniqueness):
+            if item in unique_items:
                 continue
 
             result.append(item)
-            seen.add(str(item))
+            unique_items.add(item)
 
             if len(result) >= target_count:
-                break
-        else:
-            msg = f"Failed to generate {target_count} unique items after {attempts} attempts"
-            raise RuntimeError(msg)
+                return result
 
-        return result
-
-    def is_valid_unique_item(self, item: Any, seen: Set[str],
-                             require_internal_uniqueness: bool,
-                             require_strict_internal_uniqueness: bool) -> bool:
-        if require_internal_uniqueness and isinstance(item, list):
-            if len(item) != len(set(str(x) for x in item)):
-                return False
-
-            if (require_strict_internal_uniqueness and item
-                    and all(str(v) == str(item[0]) for v in item)):
-                raise RuntimeError("Cannot generate internally unique list from identical values")
-
-        return str(item) not in seen
+        msg = (f"Failed to generate {target_count} unique items after {max_attempts} "
+               f"attempts")
+        raise RuntimeError(msg)
 
     def visit_list(self, schema: ListSchema, **kwargs: Any) -> List[Any]:
         if schema.props.elements is Nil and schema.props.type is Nil:
@@ -173,13 +181,11 @@ class Generator(SchemaVisitor[Any]):
                 return []
 
             if schema.props.len is not Nil:
-                length = schema.props.len
-                return [[] for _ in range(length)]
+                return [[] for _ in range(schema.props.len)]
             elif schema.props.min_len is not Nil or schema.props.max_len is not Nil:
                 min_len = schema.props.min_len if schema.props.min_len is not Nil else LIST_LEN_MIN
                 max_len = schema.props.max_len if schema.props.max_len is not Nil else LIST_LEN_MAX
-                length = self._random.random_int(min_len, max_len)
-                return [[] for _ in range(length)]
+                return [[] for _ in range(self._random.random_int(min_len, max_len))]
 
         if schema.props.elements is not Nil:
             elements = [e for e in schema.props.elements if not is_ellipsis(e)]
@@ -192,24 +198,28 @@ class Generator(SchemaVisitor[Any]):
             if not schema.props.unique:
                 return generate_once()
 
-            all_same_schema = len(elements) >= 2 and all(
-                str(elements[0]) == str(e) for e in elements)
-            strict_mode = all_same_schema and schema.props.unique
+            all_same_schema = len(elements) >= 2 and all(elements[0] == e for e in elements)
 
             if schema.props.len is not Nil:
-                return self.generate_unique_items(
+                result = self.generate_unique_items(
                     generate_fn=generate_once,
                     target_count=schema.props.len,
-                    require_internal_uniqueness=True,
-                    require_strict_internal_uniqueness=strict_mode,
                 )
 
-            for _ in range(sys.getrecursionlimit()):
+                if all_same_schema:
+                    for item in result:
+                        if isinstance(item, list) and not self.is_unique_list(item):
+                            raise RuntimeError("Cannot generate internally unique list")
+
+                return result
+
+            max_attempts = sys.getrecursionlimit()
+            for _ in range(max_attempts):
                 candidate = generate_once()
-                if len(set(map(str, candidate))) == len(candidate):
+                if self.is_unique_list(candidate):
                     return candidate
 
-            raise RuntimeError("Failed to generate a list with unique internal values")
+            raise RuntimeError("Failed to generate a list with unique elements")
 
         if schema.props.type is not Nil:
             if schema.props.len is not Nil:
