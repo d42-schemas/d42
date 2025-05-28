@@ -1,6 +1,6 @@
 import sys
 from datetime import date, datetime, timedelta
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Set
 from uuid import UUID, uuid4
 
 from niltype import Nil
@@ -46,21 +46,24 @@ __all__ = ("Generator",)
 class UniqueSet:
     def __init__(self) -> None:
         self._items: Dict[Any, None] = {}
+        self._id_items: Dict[int, None] = {}
+        self._str_items: Set[str] = set()
 
     def add(self, item: Any) -> None:
         try:
             self._items[item] = None
         except (TypeError, ValueError):
-            self._items[id(item)] = None
+            self._id_items[id(item)] = None
+            self._str_items.add(str(item))
 
     def __contains__(self, item: Any) -> bool:
         try:
             return item in self._items
         except (TypeError, ValueError):
-            return id(item) in self._items
+            return id(item) in self._id_items or str(item) in self._str_items
 
     def __len__(self) -> int:
-        return len(self._items)
+        return len(self._items) + len(self._id_items)
 
 
 class Generator(SchemaVisitor[Any]):
@@ -141,6 +144,7 @@ class Generator(SchemaVisitor[Any]):
             return True
 
         unique_items = UniqueSet()
+
         for item in items:
             if item in unique_items:
                 return False
