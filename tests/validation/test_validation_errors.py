@@ -1,9 +1,12 @@
 import uuid
 
 from baby_steps import given, then, when
+from pytest import raises
 from th import PathHolder
 
+from d42 import schema, validate_or_fail
 from d42.declaration.types import IntSchema
+from d42.validation import ValidationException
 from d42.validation.errors import (
     AlphabetValidationError,
     ExtraElementValidationError,
@@ -20,6 +23,7 @@ from d42.validation.errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UniqueValidationError,
     ValueValidationError,
 )
 
@@ -158,3 +162,56 @@ def test_validation_invalid_uuid_version_error():
     with then:
         assert repr(res) == ("InvalidUUIDVersionValidationError(PathHolder(), "
                              "UUID('886313e1-3b8a-5372-9b90-0c9aee199e5d'), 5, 4)")
+
+
+def test_validation_unique_error():
+    with given:
+        duplicate_list = [1, 1, 2, 3]
+
+    with when:
+        res = UniqueValidationError(PathHolder(), duplicate_list)
+
+    with then:
+        assert repr(res) == f"UniqueValidationError(PathHolder(), {duplicate_list!r})"
+
+
+def test_validate_or_fail_with_unique_list():
+    with given:
+        unique_schema = schema.list(schema.int).unique()
+        unique_list = [1, 2, 3, 4, 5]
+        duplicate_list = [1, 2, 3, 3, 5]
+
+    with when:
+        result = validate_or_fail(unique_schema, unique_list)
+
+    with then:
+        assert result is True
+
+    with when, raises(ValidationException) as exception:
+        validate_or_fail(unique_schema, duplicate_list)
+
+    with then:
+        assert "unique" in str(exception.value).lower()
+
+
+def test_validate_or_fail_with_mixed_types_unique_list():
+    with given:
+        mixed_schema = schema.list(schema.any(
+            schema.str,
+            schema.int,
+            schema.bool
+        )).unique()
+        mixed_unique = ["a", 1, True, "b", 2]
+        mixed_duplicate = ["a", 1, True, "a"]
+
+    with when:
+        result = validate_or_fail(mixed_schema, mixed_unique)
+
+    with then:
+        assert result is True
+
+    with when, raises(ValidationException) as exception:
+        validate_or_fail(mixed_schema, mixed_duplicate)
+
+    with then:
+        assert "unique" in str(exception.value).lower()
