@@ -44,6 +44,7 @@ from .errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UniqueValidationError,
     ValidationError,
     ValueValidationError,
 )
@@ -250,6 +251,10 @@ class Validator(SchemaVisitor[ValidationResult]):
                 return result.add_error(
                     MaxLengthValidationError(path, value, schema.props.max_len))
 
+        if schema.props.unique and not self.is_unique_list(value):
+            result.add_error(UniqueValidationError(path, value))
+            return result
+
         if (schema.props.type is Nil) and (schema.props.elements is Nil):
             return result
 
@@ -294,6 +299,20 @@ class Validator(SchemaVisitor[ValidationResult]):
                 result.add_error(ExtraElementValidationError(path, value, index))
 
         return result
+
+    def is_unique_list(self, items: List[Any]) -> bool:
+        """Check if all items in the list are unique."""
+        if not items:
+            return True
+        seen_ids = set()
+
+        for item in items:
+            item_id = id(item)
+            if item_id in seen_ids:
+                return False
+            seen_ids.add(item_id)
+
+        return True
 
     def visit_dict(self, schema: DictSchema, *,
                    value: Any = Nil, path: Nilable[PathHolder] = Nil,
