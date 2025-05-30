@@ -237,10 +237,21 @@ class SchemaMismatchValidationError(ValidationError):
 
         error_lines = []
         for index, errors in self.subschema_errors:
-            schema_errors = [e.format(formatter) for e in errors]
+            schema_errors = []
+            for error in errors:
+                if isinstance(error, SchemaMismatchValidationError):
+                    nested_errors = error.format(formatter).split("\n")
+                    nested_errors = [line.replace("Schema ", f"Schema {index + 1}.")
+                                     for line in nested_errors]
+                    schema_errors.append(nested_errors[0])
+                    schema_errors.extend(f" |   {line}" for line in nested_errors[1:])
+                else:
+                    schema_errors.append(error.format(formatter))
+
             if schema_errors:
-                error_lines.append(f" | Schema {index + 1}:")
-                error_lines.extend(f" | - {e}" for e in schema_errors)
+                schema_desc = f"Schema {index + 1}"
+                error_lines.append(f" | {schema_desc}:")
+                error_lines.extend(f" |   - {e}" for e in schema_errors)
 
         if error_lines:
             p = formatter._format_path(self.path)

@@ -338,3 +338,73 @@ def test_format_invalid_uuid_version_error(path: PathHolder, formatted: str, *,
 
     with then:
         assert res == formatted
+
+
+def test_format_any_schema_missmatch_error(*, formatter: Formatter):
+    with given:
+        value = 3.14
+        error = SchemaMismatchValidationError(
+            PathHolder(),
+            value,
+            (schema.none, schema.str, schema.int),
+            [
+                (0, [TypeValidationError(PathHolder(), value, type(None))]),
+                (1, [TypeValidationError(PathHolder(), value, str)]),
+                (2, [TypeValidationError(PathHolder(), value, int)])
+            ]
+        )
+
+    with when:
+        res = error.format(formatter)
+
+    with then:
+        expected = (
+            "Value at _ does not match any of the allowed schemas:\n"
+            " | Schema 1:\n"
+            " |   - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given\n"
+            " | Schema 2:\n"
+            " |   - Value 3.14 must be <class 'str'>, but <class 'float'> given\n"
+            " | Schema 3:\n"
+            " |   - Value 3.14 must be <class 'int'>, but <class 'float'> given"
+        )
+        assert res == expected
+
+
+def test_format_any_schema_with_nested_schemas_missmatch_error(*, formatter: Formatter):
+    with given:
+        value = 3.14
+        nested_error = SchemaMismatchValidationError(
+            PathHolder(),
+            value,
+            (schema.str, schema.int),
+            [
+                (0, [TypeValidationError(PathHolder(), value, str)]),
+                (1, [TypeValidationError(PathHolder(), value, int)])
+            ]
+        )
+        error = SchemaMismatchValidationError(
+            PathHolder(),
+            value,
+            (schema.none, schema.dict({"type": schema.str})),
+            [
+                (0, [TypeValidationError(PathHolder(), value, type(None))]),
+                (1, [nested_error])
+            ]
+        )
+
+    with when:
+        res = error.format(formatter)
+
+    with then:
+        expected = (
+            "Value at _ does not match any of the allowed schemas:\n"
+            " | Schema 1:\n"
+            " |   - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given\n"
+            " | Schema 2:\n"
+            " |   - Value at _ does not match any of the allowed schemas:\n"
+            " |   -  |    | Schema 2.1:\n"
+            " |   -  |    |   - Value 3.14 must be <class 'str'>, but <class 'float'> given\n"
+            " |   -  |    | Schema 2.2:\n"
+            " |   -  |    |   - Value 3.14 must be <class 'int'>, but <class 'float'> given"
+        )
+        assert res == expected

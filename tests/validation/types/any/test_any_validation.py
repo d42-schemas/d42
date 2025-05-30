@@ -98,12 +98,10 @@ def test_any_type_validation_kwargs():
 
 def test_nested_any_validation_error():
     with given:
-        value = 3.14  # float value that doesn't match any of the schemas
-        nested_any = schema.any(schema.str, schema.int)
-        outer_any = schema.any(schema.none, nested_any)
+        value = 3.14
 
     with when:
-        result = validate(outer_any, value)
+        result = validate(schema.any(schema.none, schema.any(schema.str, schema.int)), value)
 
     with then:
         assert result.get_errors() == [
