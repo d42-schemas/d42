@@ -1,6 +1,6 @@
 import sys
 from datetime import date, datetime, timedelta
-from typing import Any, Callable, Dict, List, Set
+from typing import Any, Callable, Dict, List
 from uuid import UUID, uuid4
 
 from niltype import Nil
@@ -45,25 +45,20 @@ __all__ = ("Generator",)
 
 class UniqueSet:
     def __init__(self) -> None:
-        self._items: Dict[Any, None] = {}
-        self._id_items: Dict[int, None] = {}
-        self._str_items: Set[str] = set()
+        self.items: List[Any] = []
 
     def add(self, item: Any) -> None:
-        try:
-            self._items[item] = None
-        except (TypeError, ValueError):
-            self._id_items[id(item)] = None
-            self._str_items.add(str(item))
+        if item not in self:
+            self.items.append(item)
 
     def __contains__(self, item: Any) -> bool:
-        try:
-            return item in self._items
-        except (TypeError, ValueError):
-            return id(item) in self._id_items or str(item) in self._str_items
+        for existing in self.items:
+            if existing == item:
+                return True
+        return False
 
     def __len__(self) -> int:
-        return len(self._items) + len(self._id_items)
+        return len(self.items)
 
 
 class Generator(SchemaVisitor[Any]):
@@ -161,21 +156,23 @@ class Generator(SchemaVisitor[Any]):
         unique_items = UniqueSet()
         max_attempts = sys.getrecursionlimit()
 
-        for _ in range(max_attempts):
-            item = generate_fn()
+        for _ in range(target_count):
+            is_unique = False
+            for attempt in range(max_attempts):
+                item = generate_fn()
 
-            if item in unique_items:
-                continue
+                if item not in unique_items:
+                    result.append(item)
+                    unique_items.add(item)
+                    is_unique = True
+                    break
 
-            result.append(item)
-            unique_items.add(item)
+            if not is_unique:
+                msg = (f"Failed to generate {target_count} unique items after exhausting "
+                       f"{max_attempts} attempts for a single item")
+                raise RuntimeError(msg)
 
-            if len(result) >= target_count:
-                return result
-
-        msg = (f"Failed to generate {target_count} unique items after {max_attempts} "
-               f"attempts")
-        raise RuntimeError(msg)
+        return result
 
     def visit_list(self, schema: ListSchema, **kwargs: Any) -> List[Any]:
         if schema.props.elements is Nil and schema.props.type is Nil:
