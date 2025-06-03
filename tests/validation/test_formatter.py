@@ -360,12 +360,12 @@ def test_format_any_schema_missmatch_error(*, formatter: Formatter):
     with then:
         expected = (
             "Value at _ does not match any of the allowed schemas:\n"
-            " | Schema 1:\n"
-            " |   - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given\n"
-            " | Schema 2:\n"
-            " |   - Value 3.14 must be <class 'str'>, but <class 'float'> given\n"
-            " | Schema 3:\n"
-            " |   - Value 3.14 must be <class 'int'>, but <class 'float'> given"
+            "| - Schema 1:\n"
+            "| - | - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given\n"
+            "| - Schema 2:\n"
+            "| - | - Value 3.14 must be <class 'str'>, but <class 'float'> given\n"
+            "| - Schema 3:\n"
+            "| - | - Value 3.14 must be <class 'int'>, but <class 'float'> given"
         )
         assert res == expected
 
@@ -398,13 +398,13 @@ def test_format_any_schema_with_nested_schemas_missmatch_error(*, formatter: For
     with then:
         expected = (
             "Value at _ does not match any of the allowed schemas:\n"
-            " | Schema 1:\n"
-            " |   - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given\n"
-            " | Schema 2:\n"
-            " |   - Value at _ does not match any of the allowed schemas:\n"
-            " |   -  |    | Schema 2.1:\n"
-            " |   -  |    |   - Value 3.14 must be <class 'str'>, but <class 'float'> given\n"
-            " |   -  |    | Schema 2.2:\n"
-            " |   -  |    |   - Value 3.14 must be <class 'int'>, but <class 'float'> given"
+            "| - Schema 1:\n"
+            "| - | - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given\n"
+            "| - Schema 2:\n"
+            "| - | - Value at _ does not match any of the allowed schemas:\n"
+            "| - | - | - Schema 2.1:\n"
+            "| - | - | - | - Value 3.14 must be <class 'str'>, but <class 'float'> given\n"
+            "| - | - | - Schema 2.2:\n"
+            "| - | - | - | - Value 3.14 must be <class 'int'>, but <class 'float'> given"
         )
         assert res == expected

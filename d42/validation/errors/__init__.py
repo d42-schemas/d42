@@ -231,34 +231,42 @@ class SchemaMismatchValidationError(ValidationError):
         self.expected_schemas = expected_schemas
         self.subschema_errors = subschema_errors
 
-    def format(self, formatter: "Formatter") -> str:
+    def format(self, formatter: "Formatter", schema_path: Optional[list[int]] = None) -> str:
+        if schema_path is None:
+            schema_path = []
         if self.subschema_errors is None:
             return formatter.format_schema_missmatch_error(self)
 
         error_lines = []
+        level = len(schema_path)
+        prefix = "| - " * level
         for index, errors in self.subschema_errors:
+            new_schema_path = schema_path + [index + 1]
+            schema_num = ".".join(map(str, new_schema_path))
+            schema_desc = f"{prefix}Schema {schema_num}:"
             schema_errors = []
             for error in errors:
                 if isinstance(error, SchemaMismatchValidationError):
-                    nested_errors = error.format(formatter).split("\n")
-                    nested_errors = [line.replace("Schema ", f"Schema {index + 1}.")
-                                     for line in nested_errors]
-                    schema_errors.append(nested_errors[0])
-                    schema_errors.extend(f" |   {line}" for line in nested_errors[1:])
+                    nested = error.format(formatter, new_schema_path).split("\n")
+                    for i, line in enumerate(nested):
+                        if i == 0:
+                            schema_errors.append("| - " * (level + 1) + line)
+                        else:
+                            schema_errors.append(line)
                 else:
-                    schema_errors.append(error.format(formatter))
-
+                    schema_errors.append(("| - " * (level + 1)) + error.format(formatter))
             if schema_errors:
-                schema_desc = f"Schema {index + 1}"
-                error_lines.append(f" | {schema_desc}:")
-                error_lines.extend(f" |   - {e}" for e in schema_errors)
+                error_lines.append(schema_desc)
+                error_lines.extend(schema_errors)
 
-        if error_lines:
-            p = formatter._format_path(self.path)
-            msg = "Value at {} does not match any of the allowed schemas:\n{}"
-            return msg.format(p, "\n".join(error_lines))
+        p = formatter._format_path(self.path)
+        msg = f"Value at {p} does not match any of the allowed schemas:"
+        lines = [msg] + error_lines
 
-        return formatter.format_schema_missmatch_error(self)
+        result = [lines[0]]
+        for line in lines[1:]:
+            result.append("| - " + line)
+        return "\n".join(result)
 
     def __repr__(self) -> str:
         return (
