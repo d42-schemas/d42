@@ -134,7 +134,7 @@ class Generator(SchemaVisitor[Any]):
 
         return self._random.random_str(length, alphabet)
 
-    def is_unique_list(self, items: List[Any]) -> bool:
+    def _is_unique_list(self, items: List[Any]) -> bool:
         if not items:
             return True
 
@@ -147,8 +147,8 @@ class Generator(SchemaVisitor[Any]):
 
         return True
 
-    def generate_unique_items(self, generate_fn: Callable[[], Any],
-                              target_count: int) -> List[Any]:
+    def _generate_unique_items(self, generate_fn: Callable[[], Any],
+                               target_count: int) -> List[Any]:
         if target_count == 0:
             return []
 
@@ -199,25 +199,18 @@ class Generator(SchemaVisitor[Any]):
             if not schema.props.unique:
                 return generate_once()
 
-            all_same_schema = len(elements) >= 2 and all(elements[0] == e for e in elements)
-
             if schema.props.len is not Nil:
-                result = self.generate_unique_items(
+                result = self._generate_unique_items(
                     generate_fn=generate_once,
                     target_count=schema.props.len,
                 )
-
-                if all_same_schema:
-                    for item in result:
-                        if isinstance(item, list) and not self.is_unique_list(item):
-                            raise RuntimeError("Cannot generate internally unique list")
 
                 return result
 
             max_attempts = sys.getrecursionlimit()
             for _ in range(max_attempts):
                 candidate = generate_once()
-                if self.is_unique_list(candidate):
+                if self._is_unique_list(candidate):
                     return candidate
 
             raise RuntimeError("Failed to generate a list with unique elements")
@@ -238,7 +231,7 @@ class Generator(SchemaVisitor[Any]):
                 return schema_type.__accept__(self, **kwargs)
 
             if schema.props.unique:
-                return self.generate_unique_items(generate_fn=generate_fn, target_count=length)
+                return self._generate_unique_items(generate_fn=generate_fn, target_count=length)
 
             return [generate_fn() for _ in range(length)]
 
