@@ -51,6 +51,8 @@ from .errors import (
 
 __all__ = ("Validator",)
 
+from ..generation._generator import UniqueSet
+
 
 class Validator(SchemaVisitor[ValidationResult]):
     def __init__(self, *,
@@ -251,7 +253,7 @@ class Validator(SchemaVisitor[ValidationResult]):
                 return result.add_error(
                     MaxLengthValidationError(path, value, schema.props.max_len))
 
-        if schema.props.unique and not self.is_unique_list(value):
+        if schema.props.unique and not self._is_unique_list(value):
             result.add_error(UniqueValidationError(path, value))
             return result
 
@@ -300,17 +302,16 @@ class Validator(SchemaVisitor[ValidationResult]):
 
         return result
 
-    def is_unique_list(self, items: List[Any]) -> bool:
-        """Check if all items in the list are unique."""
+    def _is_unique_list(self, items: List[Any]) -> bool:
         if not items:
             return True
-        seen_ids = set()
+
+        unique_items = UniqueSet()
 
         for item in items:
-            item_id = id(item)
-            if item_id in seen_ids:
+            if item in unique_items:
                 return False
-            seen_ids.add(item_id)
+            unique_items.add(item)
 
         return True
 
