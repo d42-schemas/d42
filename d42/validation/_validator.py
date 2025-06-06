@@ -253,7 +253,7 @@ class Validator(SchemaVisitor[ValidationResult]):
                 return result.add_error(
                     MaxLengthValidationError(path, value, schema.props.max_len))
 
-        if schema.props.unique and not Validator._validate_all_unique(value):
+        if schema.props.unique and not self._validate_all_unique(value):
             result.add_error(UniqueValidationError(path, value))
             return result
 
@@ -302,7 +302,7 @@ class Validator(SchemaVisitor[ValidationResult]):
 
         return result
 
-    def _validate_all_unique(items_list: List[Any]) -> bool:
+    def _validate_all_unique(self, items_list: List[Any]) -> bool:
         for i in range(len(items_list)):
             other_items = items_list[:i] + items_list[i + 1:]
             if not Generator._is_item_unique(items_list[i], other_items):
