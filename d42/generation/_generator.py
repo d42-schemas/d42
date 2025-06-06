@@ -173,20 +173,17 @@ class Generator(SchemaVisitor[Any]):
 
             result: List[Any] = []
             max_attempts = sys.getrecursionlimit()
-            
             for elem in elements:
                 attempts = 0
                 while attempts < max_attempts:
                     item = elem.__accept__(self, **kwargs)
                     attempts += 1
-                    
                     if Generator._is_item_unique(item, result):
                         result.append(item)
                         break
                 else:
                     raise RuntimeError(
                         "Failed to generate a unique value after exhausting attempts")
-                    
             return result
 
         if schema.props.type is not Nil:
