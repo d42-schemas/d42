@@ -2,7 +2,7 @@ import re
 from copy import deepcopy
 from datetime import date, datetime
 from math import isclose
-from typing import Any, Callable, List, Optional, Tuple, Type, cast
+from typing import Any, Callable, List, Optional, Type, cast
 from uuid import UUID
 
 from niltype import Nil, Nilable
@@ -336,8 +336,8 @@ class Validator(SchemaVisitor[ValidationResult]):
         if schema.props.types is Nil:
             return result
 
-        all_errors: List[Tuple[int, List[ValidationError]]] = []
-        for index, sch_type in enumerate(schema.props.types):
+        all_errors: List[List[ValidationError]] = []
+        for sch_type in schema.props.types:
             res = sch_type.__accept__(self, path=path, value=value, **kwargs)
             if not res.has_errors():
                 return result
@@ -346,10 +346,10 @@ class Validator(SchemaVisitor[ValidationResult]):
             for error in res.get_errors():
                 schema_errors.append(error)
 
-            all_errors.append((index, schema_errors))
+            all_errors.append(schema_errors)
 
         result.add_error(SchemaMismatchValidationError(
-            path, value, schema.props.types, all_errors
+            path, value, schema.props.types, [(i, errors) for i, errors in enumerate(all_errors)]
         ))
         return result
 

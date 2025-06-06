@@ -1,3 +1,4 @@
+import typing
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
@@ -230,43 +231,10 @@ class SchemaMismatchValidationError(ValidationError):
         self.actual_value = actual_value
         self.expected_schemas = expected_schemas
         self.subschema_errors = subschema_errors
+        self.schema_path: Optional[typing.List[int]] = None
 
-    def format(self, formatter: "Formatter", schema_path: Optional[list[int]] = None) -> str:
-        if schema_path is None:
-            schema_path = []
-        if self.subschema_errors is None:
-            return formatter.format_schema_missmatch_error(self)
-
-        error_lines = []
-        level = len(schema_path)
-        prefix = "| - " * level
-        for index, errors in self.subschema_errors:
-            new_schema_path = schema_path + [index + 1]
-            schema_num = ".".join(map(str, new_schema_path))
-            schema_desc = f"{prefix}Schema {schema_num}:"
-            schema_errors = []
-            for error in errors:
-                if isinstance(error, SchemaMismatchValidationError):
-                    nested = error.format(formatter, new_schema_path).split("\n")
-                    for i, line in enumerate(nested):
-                        if i == 0:
-                            schema_errors.append("| - " * (level + 1) + line)
-                        else:
-                            schema_errors.append(line)
-                else:
-                    schema_errors.append(("| - " * (level + 1)) + error.format(formatter))
-            if schema_errors:
-                error_lines.append(schema_desc)
-                error_lines.extend(schema_errors)
-
-        p = formatter._format_path(self.path)
-        msg = f"Value at {p} does not match any of the allowed schemas:"
-        lines = [msg] + error_lines
-
-        result = [lines[0]]
-        for line in lines[1:]:
-            result.append("| - " + line)
-        return "\n".join(result)
+    def format(self, formatter: "Formatter") -> str:
+        return formatter.format_schema_missmatch_error(self)
 
     def __repr__(self) -> str:
         return (
