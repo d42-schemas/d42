@@ -43,24 +43,6 @@ from ._regex_generator import RegexGenerator
 __all__ = ("Generator",)
 
 
-class UniqueSet:
-    def __init__(self) -> None:
-        self.items: List[Any] = []
-
-    def add(self, item: Any) -> None:
-        if item not in self:
-            self.items.append(item)
-
-    def __contains__(self, item: Any) -> bool:
-        for existing in self.items:
-            if existing == item:
-                return True
-        return False
-
-    def __len__(self) -> int:
-        return len(self.items)
-
-
 class Generator(SchemaVisitor[Any]):
     def __init__(self, random: Random, regex_generator: RegexGenerator) -> None:
         self._random = random
@@ -134,17 +116,10 @@ class Generator(SchemaVisitor[Any]):
 
         return self._random.random_str(length, alphabet)
 
-    def _is_unique_list(self, items: List[Any]) -> bool:
-        if not items:
-            return True
-
-        unique_items = UniqueSet()
-
-        for item in items:
-            if item in unique_items:
+    def _is_item_unique(item: Any, items_list: List[Any]) -> bool:
+        for existing_item in items_list:
+            if item == existing_item:
                 return False
-            unique_items.add(item)
-
         return True
 
     def _generate_unique_items(self, generate_fn: Callable[[], Any],
@@ -152,27 +127,27 @@ class Generator(SchemaVisitor[Any]):
         if target_count == 0:
             return []
 
-        result = []
-        unique_items = UniqueSet()
+        unique_items: List[Any] = []
         max_attempts = sys.getrecursionlimit()
 
-        for _ in range(target_count):
-            is_unique = False
-            for attempt in range(max_attempts):
-                item = generate_fn()
+        while len(unique_items) < target_count:
+            # Try to generate a unique item with limited attempts
+            attempts_for_this_item = 0
+            unique_found = False
 
-                if item not in unique_items:
-                    result.append(item)
-                    unique_items.add(item)
-                    is_unique = True
+            while attempts_for_this_item < max_attempts:
+                new_item = generate_fn()
+                attempts_for_this_item += 1
+
+                if Generator._is_item_unique(new_item, unique_items):
+                    unique_items.append(new_item)
+                    unique_found = True
                     break
 
-            if not is_unique:
-                msg = (f"Failed to generate {target_count} unique items after exhausting "
-                       f"{max_attempts} attempts for a single item")
-                raise RuntimeError(msg)
+            if not unique_found:
+                raise RuntimeError("Failed to generate a unique value after exhausting attempts")
 
-        return result
+        return unique_items
 
     def visit_list(self, schema: ListSchema, **kwargs: Any) -> List[Any]:
         if schema.props.elements is Nil and schema.props.type is Nil:
@@ -193,27 +168,26 @@ class Generator(SchemaVisitor[Any]):
             if not elements:
                 return []
 
-            def generate_once() -> List[Any]:
+            if not schema.props.unique:
                 return [elem.__accept__(self, **kwargs) for elem in elements]
 
-            if not schema.props.unique:
-                return generate_once()
-
-            if schema.props.len is not Nil:
-                result = self._generate_unique_items(
-                    generate_fn=generate_once,
-                    target_count=schema.props.len,
-                )
-
-                return result
-
+            result: List[Any] = []
             max_attempts = sys.getrecursionlimit()
-            for _ in range(max_attempts):
-                candidate = generate_once()
-                if self._is_unique_list(candidate):
-                    return candidate
-
-            raise RuntimeError("Failed to generate a list with unique elements")
+            
+            for elem in elements:
+                attempts = 0
+                while attempts < max_attempts:
+                    item = elem.__accept__(self, **kwargs)
+                    attempts += 1
+                    
+                    if Generator._is_item_unique(item, result):
+                        result.append(item)
+                        break
+                else:
+                    raise RuntimeError(
+                        "Failed to generate a unique value after exhausting attempts")
+                    
+            return result
 
         if schema.props.type is not Nil:
             if schema.props.len is not Nil:
