@@ -51,7 +51,7 @@ from .errors import (
 
 __all__ = ("Validator",)
 
-from ..generation._generator import UniqueSet
+from ..generation._generator import Generator
 
 
 class Validator(SchemaVisitor[ValidationResult]):
@@ -253,7 +253,7 @@ class Validator(SchemaVisitor[ValidationResult]):
                 return result.add_error(
                     MaxLengthValidationError(path, value, schema.props.max_len))
 
-        if schema.props.unique and not self._is_unique_list(value):
+        if schema.props.unique and not Validator._validate_all_unique(value):
             result.add_error(UniqueValidationError(path, value))
             return result
 
@@ -302,17 +302,11 @@ class Validator(SchemaVisitor[ValidationResult]):
 
         return result
 
-    def _is_unique_list(self, items: List[Any]) -> bool:
-        if not items:
-            return True
-
-        unique_items = UniqueSet()
-
-        for item in items:
-            if item in unique_items:
+    def _validate_all_unique(items_list: List[Any]) -> bool:
+        for i in range(len(items_list)):
+            other_items = items_list[:i] + items_list[i + 1:]
+            if not Generator._is_item_unique(items_list[i], other_items):
                 return False
-            unique_items.add(item)
-
         return True
 
     def visit_dict(self, schema: DictSchema, *,
