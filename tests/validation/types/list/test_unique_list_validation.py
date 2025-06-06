@@ -1,61 +1,240 @@
+from typing import Any, List
+
+import pytest
 from baby_steps import given, then, when
-from pytest import raises
+from th import PathHolder
 
-from d42 import schema, validate_or_fail
-from d42.validation import ValidationException
+from d42 import schema
+from d42.validation import validate
+from d42.validation.errors import TypeValidationError, UniqueValidationError
 
 
-def test_validate_or_fail_with_unique_list():
+@pytest.mark.parametrize("value", [
+    [],
+    [1, 2, 3],
+    ["a", "b", "c"],
+    [True, False],
+])
+def test_unique_list_validation(value: List[Any]):
+    with when:
+        result = validate(schema.list.unique(), value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_type_validation_error():
     with given:
-        unique_schema = schema.list(schema.int).unique()
-        unique_list = [1, 2, 3, 4, 5]
+        value = {}
 
     with when:
-        result = validate_or_fail(unique_schema, unique_list)
+        result = validate(schema.list.unique(), value)
 
     with then:
-        assert result is True
+        assert result.get_errors() == [
+            TypeValidationError(PathHolder(), value, list),
+        ]
 
 
-def test_validate_or_fail_with_non_unique_list():
+def test_unique_list_with_duplicate_elements():
     with given:
-        unique_schema = schema.list(schema.int).unique()
-        duplicate_list = [1, 2, 3, 3, 5]
-
-    with when, raises(ValidationException) as exception:
-        validate_or_fail(unique_schema, duplicate_list)
-
-    with then:
-        assert "unique" in str(exception.value).lower()
-
-
-def test_validate_or_fail_with_mixed_types_unique_list():
-    with given:
-        mixed_schema = schema.list(schema.any(
-            schema.str,
-            schema.int,
-            schema.bool
-        )).unique()
-        mixed_unique = ["a", 1, False, "b", 2]
+        value = [1, 2, 1, 3]
 
     with when:
-        result = validate_or_fail(mixed_schema, mixed_unique)
+        result = validate(schema.list.unique(), value)
 
     with then:
-        assert result is True
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
 
 
-def test_validate_or_fail_with_mixed_types_non_unique_list():
+def test_unique_list_with_duplicate_strings():
     with given:
-        mixed_schema = schema.list(schema.any(
-            schema.str,
-            schema.int,
-            schema.bool
-        )).unique()
-        mixed_duplicate = ["a", 1, False, "a", 2]
+        value = ["a", "b", "a", "c"]
 
-    with when, raises(ValidationException) as exception:
-        validate_or_fail(mixed_schema, mixed_duplicate)
+    with when:
+        result = validate(schema.list.unique(), value)
 
     with then:
-        assert "unique" in str(exception.value).lower()
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_with_duplicate_booleans():
+    with given:
+        value = [True, False, True]
+
+    with when:
+        result = validate(schema.list.unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_with_duplicate_mixed_types():
+    with given:
+        value = [1, "a", 1, True]
+
+    with when:
+        result = validate(schema.list.unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_with_typed_elements():
+    with given:
+        value = [1, 2, 3, 4, 5]
+
+    with when:
+        result = validate(schema.list(schema.int).unique(), value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_with_typed_duplicate_elements():
+    with given:
+        value = [1, 2, 3, 2, 5]
+
+    with when:
+        result = validate(schema.list(schema.int).unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+@pytest.mark.parametrize("value", [
+    [],
+    [1, 2, 3],
+])
+def test_unique_list_len_validation(value: List[Any]):
+    with given:
+        length = len(value)
+
+    with when:
+        result = validate(schema.list.len(length).unique(), value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_min_len_validation():
+    with given:
+        value = [1, 2, 3]
+        min_length = 2
+
+    with when:
+        result = validate(schema.list.len(min_length, ...).unique(), value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_min_len_with_duplicates():
+    with given:
+        value = [1, 2, 2, 3]
+        min_length = 2
+
+    with when:
+        result = validate(schema.list.len(min_length, ...).unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_max_len_validation():
+    with given:
+        value = [1, 2, 3]
+        max_length = 5
+
+    with when:
+        result = validate(schema.list.len(..., max_length).unique(), value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_max_len_with_duplicates():
+    with given:
+        value = [1, 2, 2, 3]
+        max_length = 5
+
+    with when:
+        result = validate(schema.list.len(..., max_length).unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_nested_lists():
+    with given:
+        value = [[1, 2], [3, 4], [5, 6]]
+
+    with when:
+        result = validate(schema.list(schema.list).unique(), value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_nested_lists_with_duplicates():
+    with given:
+        value = [[1, 2], [3, 4], [1, 2]]
+
+    with when:
+        result = validate(schema.list(schema.list).unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_with_none_values():
+    with given:
+        value = [None, 1, "a"]
+
+    with when:
+        result = validate(schema.list(schema.any(schema.none, schema.int, schema.str)).unique(),
+                          value)
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_unique_list_with_duplicate_none_values():
+    with given:
+        value = [None, 1, None]
+
+    with when:
+        result = validate(schema.list(schema.any(schema.none, schema.int)).unique(), value)
+
+    with then:
+        assert result.get_errors() == [
+            UniqueValidationError(PathHolder(), value),
+        ]
+
+
+def test_unique_list_with_explicit_elements():
+    with given:
+        value = [1, 2, 3]
+
+    with (when):
+        result = \
+            validate(schema.list([schema.int(1), schema.int(2), schema.int(3)]).unique(), value)
+
+    with then:
+        assert result.get_errors() == []
