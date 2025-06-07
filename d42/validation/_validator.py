@@ -349,7 +349,7 @@ class Validator(SchemaVisitor[ValidationResult]):
             all_errors.append(schema_errors)
 
         result.add_error(SchemaMismatchValidationError(
-            path, value, schema.props.types, [(i, errors) for i, errors in enumerate(all_errors)]
+            path, value, schema.props.types, all_errors
         ))
         return result
 

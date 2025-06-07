@@ -49,7 +49,7 @@ def test_any_type_validation_error():
                 PathHolder(),
                 value,
                 types,
-                [(0, [TypeValidationError(PathHolder(), value, type(None))])]
+                [[TypeValidationError(PathHolder(), value, type(None))]]
             )
         ]
 
@@ -70,7 +70,7 @@ def test_any_types_validation_error():
         p = PathHolder()
         e1 = TypeValidationError(p, value, int)
         e2 = TypeValidationError(p, value, str)
-        errs = [(0, [e1]), (1, [e2])]
+        errs = [[e1], [e2]]
 
     with when:
         result = validate(schema.any(*types), value)
@@ -91,8 +91,8 @@ def test_any_type_validation_kwargs():
     with then:
         assert result.get_errors() == [
             SchemaMismatchValidationError(path, actual_value, (schema.none,),
-                                          [(0, [TypeValidationError(path,
-                                                                    actual_value, type(None))])])
+                                          [[TypeValidationError(path,
+                                                                actual_value, type(None))]])
         ]
 
 
@@ -110,9 +110,9 @@ def test_nested_any_validation_error():
                 value,
                 (schema.none, schema.str, schema.int),
                 [
-                    (0, [TypeValidationError(PathHolder(), value, type(None))]),
-                    (1, [TypeValidationError(PathHolder(), value, str)]),
-                    (2, [TypeValidationError(PathHolder(), value, int)])
+                    [TypeValidationError(PathHolder(), value, type(None))],
+                    [TypeValidationError(PathHolder(), value, str)],
+                    [TypeValidationError(PathHolder(), value, int)]
                 ]
             )
         ]

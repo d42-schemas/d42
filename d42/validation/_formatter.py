@@ -1,6 +1,6 @@
 import os
 from copy import deepcopy
-from typing import Any, Sequence
+from typing import Any, List, Optional, Sequence
 
 from th import PathHolder
 
@@ -134,6 +134,15 @@ class Formatter(AbstractFormatter):
         return f"Value{formatted_path} contains extra key {error.extra_key!r}"
 
     def format_schema_missmatch_error(self, error: SchemaMismatchValidationError) -> str:
+        return self._format_schema_missmatch_error(error, schema_path=[])
+
+    def _format_schema_missmatch_error(
+        self,
+        error: SchemaMismatchValidationError,
+        schema_path: Optional[List[int]] = None
+    ) -> str:
+        if schema_path is None:
+            schema_path = []
         if error.subschema_errors is None:
             actual_type = self._get_type(error.actual_value)
             formatted_path = self._at_path(error.path)
@@ -142,18 +151,18 @@ class Formatter(AbstractFormatter):
                     f"given")
 
         error_lines = []
-        schema_path = getattr(error, 'schema_path', []) or []
         level = len(schema_path)
         prefix = "| - " * level
-        for index, errors in error.subschema_errors:
+        for index, errors in enumerate(error.subschema_errors):
             new_schema_path = schema_path + [index + 1]
             schema_num = ".".join(map(str, new_schema_path))
             schema_desc = f"{prefix}Schema {schema_num}:"
             schema_errors = []
             for err in errors:
                 if isinstance(err, SchemaMismatchValidationError):
-                    err.schema_path = new_schema_path
-                    nested = err.format(self).split(os.linesep)
+                    nested = self._format_schema_missmatch_error(
+                        err, schema_path=new_schema_path
+                    ).split(os.linesep)
                     for i, line in enumerate(nested):
                         if i == 0:
                             schema_errors.append("| - " * (level + 1) + line)

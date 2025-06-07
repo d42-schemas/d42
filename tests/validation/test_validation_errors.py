@@ -146,13 +146,13 @@ def test_validation_schema_mismatch_error():
             PathHolder(),
             "key",
             (IntSchema(),),
-            [(0, [TypeValidationError(PathHolder(), "key", int)])]
+            [[TypeValidationError(PathHolder(), "key", int)]]
         )
 
     with then:
         assert repr(res) == (
             "SchemaMismatchValidationError(PathHolder(), 'key', (schema.int,), "
-            "[(0, [TypeValidationError(PathHolder(), 'key', <class 'int'>)])])"
+            "[[TypeValidationError(PathHolder(), 'key', <class 'int'>)]])"
         )
 
 

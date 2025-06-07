@@ -1,4 +1,3 @@
-import typing
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
@@ -225,13 +224,11 @@ class ExtraKeyValidationError(ValidationError):
 class SchemaMismatchValidationError(ValidationError):
     def __init__(self, path: PathHolder, actual_value: Any,
                  expected_schemas: Tuple[GenericSchema, ...],
-                 subschema_errors: Optional[
-                     List[Tuple[int, List[ValidationError]]]] = None) -> None:
+                 subschema_errors: Optional[List[List[ValidationError]]] = None) -> None:
         self.path = path
         self.actual_value = actual_value
         self.expected_schemas = expected_schemas
         self.subschema_errors = subschema_errors
-        self.schema_path: Optional[typing.List[int]] = None
 
     def format(self, formatter: "Formatter") -> str:
         return formatter.format_schema_missmatch_error(self)

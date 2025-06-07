@@ -349,9 +349,9 @@ def test_format_any_schema_missmatch_error(*, formatter: Formatter):
             value,
             (schema.none, schema.str, schema.int),
             [
-                (0, [TypeValidationError(PathHolder(), value, type(None))]),
-                (1, [TypeValidationError(PathHolder(), value, str)]),
-                (2, [TypeValidationError(PathHolder(), value, int)])
+                [TypeValidationError(PathHolder(), value, type(None))],
+                [TypeValidationError(PathHolder(), value, str)],
+                [TypeValidationError(PathHolder(), value, int)]
             ]
         )
 
@@ -379,8 +379,8 @@ def test_format_any_schema_with_nested_schemas_missmatch_error(*, formatter: For
             value,
             (schema.str, schema.int),
             [
-                (0, [TypeValidationError(PathHolder(), value, str)]),
-                (1, [TypeValidationError(PathHolder(), value, int)])
+                [TypeValidationError(PathHolder(), value, str)],
+                [TypeValidationError(PathHolder(), value, int)]
             ]
         )
         error = SchemaMismatchValidationError(
@@ -388,8 +388,8 @@ def test_format_any_schema_with_nested_schemas_missmatch_error(*, formatter: For
             value,
             (schema.none, schema.dict({"type": schema.str})),
             [
-                (0, [TypeValidationError(PathHolder(), value, type(None))]),
-                (1, [nested_error])
+                [TypeValidationError(PathHolder(), value, type(None))],
+                [nested_error]
             ]
         )
 
