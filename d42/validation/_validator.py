@@ -336,12 +336,21 @@ class Validator(SchemaVisitor[ValidationResult]):
         if schema.props.types is Nil:
             return result
 
+        all_errors: List[List[ValidationError]] = []
         for sch_type in schema.props.types:
             res = sch_type.__accept__(self, path=path, value=value, **kwargs)
             if not res.has_errors():
                 return result
 
-        result.add_error(SchemaMismatchValidationError(path, value, schema.props.types))
+            schema_errors: List[ValidationError] = []
+            for error in res.get_errors():
+                schema_errors.append(error)
+
+            all_errors.append(schema_errors)
+
+        result.add_error(SchemaMismatchValidationError(
+            path, value, schema.props.types, all_errors
+        ))
         return result
 
     def visit_bytes(self, schema: BytesSchema, *,

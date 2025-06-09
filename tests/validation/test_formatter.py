@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytest
@@ -338,3 +339,73 @@ def test_format_invalid_uuid_version_error(path: PathHolder, formatted: str, *,
 
     with then:
         assert res == formatted
+
+
+def test_format_any_schema_missmatch_error(*, formatter: Formatter):
+    with given:
+        value = 3.14
+        error = SchemaMismatchValidationError(
+            PathHolder(),
+            value,
+            (schema.none, schema.str, schema.int),
+            [
+                [TypeValidationError(PathHolder(), value, type(None))],
+                [TypeValidationError(PathHolder(), value, str)],
+                [TypeValidationError(PathHolder(), value, int)]
+            ]
+        )
+
+    with when:
+        res = error.format(formatter)
+
+    with then:
+        expected = os.linesep.join([
+            "Value at _ does not match any of the allowed schemas:",
+            "| - Schema 1:",
+            "| - | - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given",
+            "| - Schema 2:",
+            "| - | - Value 3.14 must be <class 'str'>, but <class 'float'> given",
+            "| - Schema 3:",
+            "| - | - Value 3.14 must be <class 'int'>, but <class 'float'> given"
+        ])
+        assert res == expected
+
+
+def test_format_any_schema_with_nested_schemas_missmatch_error(*, formatter: Formatter):
+    with given:
+        value = 3.14
+        nested_error = SchemaMismatchValidationError(
+            PathHolder(),
+            value,
+            (schema.str, schema.int),
+            [
+                [TypeValidationError(PathHolder(), value, str)],
+                [TypeValidationError(PathHolder(), value, int)]
+            ]
+        )
+        error = SchemaMismatchValidationError(
+            PathHolder(),
+            value,
+            (schema.none, schema.dict({"type": schema.str})),
+            [
+                [TypeValidationError(PathHolder(), value, type(None))],
+                [nested_error]
+            ]
+        )
+
+    with when:
+        res = error.format(formatter)
+
+    with then:
+        expected = os.linesep.join([
+            "Value at _ does not match any of the allowed schemas:",
+            "| - Schema 1:",
+            "| - | - Value 3.14 must be <class 'NoneType'>, but <class 'float'> given",
+            "| - Schema 2:",
+            "| - | - Value at _ does not match any of the allowed schemas:",
+            "| - | - | - Schema 2.1:",
+            "| - | - | - | - Value 3.14 must be <class 'str'>, but <class 'float'> given",
+            "| - | - | - Schema 2.2:",
+            "| - | - | - | - Value 3.14 must be <class 'int'>, but <class 'float'> given"
+        ])
+        assert res == expected
