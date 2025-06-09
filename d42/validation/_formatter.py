@@ -1,5 +1,6 @@
+import os
 from copy import deepcopy
-from typing import Any, Sequence
+from typing import Any, List, Optional, Sequence
 
 from th import PathHolder
 
@@ -133,10 +134,54 @@ class Formatter(AbstractFormatter):
         return f"Value{formatted_path} contains extra key {error.extra_key!r}"
 
     def format_schema_missmatch_error(self, error: SchemaMismatchValidationError) -> str:
-        actual_type = self._get_type(error.actual_value)
-        formatted_path = self._at_path(error.path)
-        return (f"Value {actual_type}{formatted_path} "
-                f"must match any of {error.expected_schemas!r}, but {error.actual_value!r} given")
+        return self._format_schema_missmatch_error(error, schema_path=[])
+
+    def _format_schema_missmatch_error(
+        self,
+        error: SchemaMismatchValidationError,
+        schema_path: Optional[List[int]] = None
+    ) -> str:
+        if schema_path is None:
+            schema_path = []
+        if error.subschema_errors is None:
+            actual_type = self._get_type(error.actual_value)
+            formatted_path = self._at_path(error.path)
+            return (f"Value {actual_type}{formatted_path} "
+                    f"must match any of {error.expected_schemas!r}, but {error.actual_value!r} "
+                    f"given")
+
+        error_lines = []
+        level = len(schema_path)
+        prefix = "| - " * level
+        for index, errors in enumerate(error.subschema_errors):
+            new_schema_path = schema_path + [index + 1]
+            schema_num = ".".join(map(str, new_schema_path))
+            schema_desc = f"{prefix}Schema {schema_num}:"
+            schema_errors = []
+            for err in errors:
+                if isinstance(err, SchemaMismatchValidationError):
+                    nested = self._format_schema_missmatch_error(
+                        err, schema_path=new_schema_path
+                    ).split(os.linesep)
+                    for i, line in enumerate(nested):
+                        if i == 0:
+                            schema_errors.append("| - " * (level + 1) + line)
+                        else:
+                            schema_errors.append(line)
+                else:
+                    schema_errors.append(("| - " * (level + 1)) + err.format(self))
+            if schema_errors:
+                error_lines.append(schema_desc)
+                error_lines.extend(schema_errors)
+
+        p = self._format_path(error.path)
+        msg = f"Value at {p} does not match any of the allowed schemas:"
+        lines = [msg] + error_lines
+
+        result = [lines[0]]
+        for line in lines[1:]:
+            result.append("| - " + line)
+        return os.linesep.join(result)
 
     def format_invalid_uuid_version_error(self, error: InvalidUUIDVersionValidationError) -> str:
         actual_type = self._get_type(error.actual_value)

@@ -6,7 +6,7 @@ from th import PathHolder
 
 from d42 import schema
 from d42.validation import validate
-from d42.validation.errors import SchemaMismatchValidationError
+from d42.validation.errors import SchemaMismatchValidationError, TypeValidationError
 
 
 @pytest.mark.parametrize("value", [
@@ -45,7 +45,12 @@ def test_any_type_validation_error():
 
     with then:
         assert result.get_errors() == [
-            SchemaMismatchValidationError(PathHolder(), value, types)
+            SchemaMismatchValidationError(
+                PathHolder(),
+                value,
+                types,
+                [[TypeValidationError(PathHolder(), value, type(None))]]
+            )
         ]
 
 
@@ -62,14 +67,17 @@ def test_any_types_validation_error():
     with given:
         value = None
         types = (schema.int, schema.str)
+        p = PathHolder()
+        e1 = TypeValidationError(p, value, int)
+        e2 = TypeValidationError(p, value, str)
+        errs = [[e1], [e2]]
 
     with when:
         result = validate(schema.any(*types), value)
 
     with then:
-        assert result.get_errors() == [
-            SchemaMismatchValidationError(PathHolder(), value, types)
-        ]
+        expected = SchemaMismatchValidationError(p, value, types, errs)
+        assert result.get_errors() == [expected]
 
 
 def test_any_type_validation_kwargs():
@@ -82,5 +90,29 @@ def test_any_type_validation_kwargs():
 
     with then:
         assert result.get_errors() == [
-            SchemaMismatchValidationError(path, actual_value, (schema.none,))
+            SchemaMismatchValidationError(path, actual_value, (schema.none,),
+                                          [[TypeValidationError(path,
+                                                                actual_value, type(None))]])
+        ]
+
+
+def test_nested_any_validation_error():
+    with given:
+        value = 3.14
+
+    with when:
+        result = validate(schema.any(schema.none, schema.any(schema.str, schema.int)), value)
+
+    with then:
+        assert result.get_errors() == [
+            SchemaMismatchValidationError(
+                PathHolder(),
+                value,
+                (schema.none, schema.str, schema.int),
+                [
+                    [TypeValidationError(PathHolder(), value, type(None))],
+                    [TypeValidationError(PathHolder(), value, str)],
+                    [TypeValidationError(PathHolder(), value, int)]
+                ]
+            )
         ]

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Tuple, Type
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 from th import PathHolder
 
@@ -35,8 +35,10 @@ class TypeValidationError(ValidationError):
         return formatter.format_type_error(self)
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
-                f"{self.expected_type!r})")
+        return (
+            f"{self.__class__.__name__}({self.path}, {self.actual_value!r}, "
+            f"{self.expected_type})"
+        )
 
 
 class ValueValidationError(ValidationError):
@@ -221,17 +223,21 @@ class ExtraKeyValidationError(ValidationError):
 
 class SchemaMismatchValidationError(ValidationError):
     def __init__(self, path: PathHolder, actual_value: Any,
-                 expected_schemas: Tuple[GenericSchema, ...]) -> None:
+                 expected_schemas: Tuple[GenericSchema, ...],
+                 subschema_errors: Optional[List[List[ValidationError]]] = None) -> None:
         self.path = path
         self.actual_value = actual_value
         self.expected_schemas = expected_schemas
+        self.subschema_errors = subschema_errors
 
     def format(self, formatter: "Formatter") -> str:
         return formatter.format_schema_missmatch_error(self)
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
-                f"{self.expected_schemas!r})")
+        return (
+            f"{self.__class__.__name__}({self.path}, {self.actual_value!r}, "
+            f"{self.expected_schemas}, {self.subschema_errors})"
+        )
 
 
 class InvalidUUIDVersionValidationError(ValidationError):
