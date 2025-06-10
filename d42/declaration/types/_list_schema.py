@@ -47,6 +47,13 @@ class ListProps(Props):
     def max_len(self) -> Nilable[int]:
         return self.get("max_len")
 
+    @property
+    def unique(self) -> bool:
+        value = self.get("unique")
+        if value is Nil:
+            return False
+        return bool(value)
+
 
 class ListSchema(Schema[ListProps]):
     if sys.version_info >= (3, 10):
@@ -141,4 +148,10 @@ class ListSchema(Schema[ListProps]):
                 props = self.__declare_min_len(props, val_or_min)
             else:
                 props = self.__declare_max_len(self.__declare_min_len(props, val_or_min), max)
+        return self.__class__(props)
+
+    def unique(self) -> "ListSchema":
+        if self.props.unique:
+            raise make_already_declared_error(self)
+        props = self.props.update(unique=True)
         return self.__class__(props)

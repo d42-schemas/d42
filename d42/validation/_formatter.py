@@ -21,6 +21,7 @@ from .errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UniqueValidationError,
     ValueValidationError,
 )
 
@@ -189,3 +190,8 @@ class Formatter(AbstractFormatter):
         return (f"Value {actual_type}{formatted_path} "
                 f"must be a UUID version {error.expected_version!r}, "
                 f"but {error.actual_value!r} version {error.actual_version!r} given")
+
+    def format_unique_error(self, error: UniqueValidationError) -> str:
+        actual_type = self._get_type(error.actual_value)
+        formatted_path = self._at_path(error.path)
+        return f"Value {actual_type}{formatted_path} must contain only unique elements"

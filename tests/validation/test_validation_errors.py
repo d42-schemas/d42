@@ -20,6 +20,7 @@ from d42.validation.errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UniqueValidationError,
     ValueValidationError,
 )
 
@@ -166,3 +167,14 @@ def test_validation_invalid_uuid_version_error():
     with then:
         assert repr(res) == ("InvalidUUIDVersionValidationError(PathHolder(), "
                              "UUID('886313e1-3b8a-5372-9b90-0c9aee199e5d'), 5, 4)")
+
+
+def test_validation_unique_error():
+    with given:
+        duplicate_list = [1, 1, 2, 3]
+
+    with when:
+        res = UniqueValidationError(PathHolder(), duplicate_list)
+
+    with then:
+        assert repr(res) == f"UniqueValidationError(PathHolder(), {duplicate_list!r})"
