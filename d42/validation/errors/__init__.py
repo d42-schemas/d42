@@ -13,7 +13,8 @@ __all__ = ("ValidationError", "TypeValidationError", "ValueValidationError",
            "MinLengthValidationError", "MaxLengthValidationError", "AlphabetValidationError",
            "SubstrValidationError", "RegexValidationError", "MissingElementValidationError",
            "ExtraElementValidationError", "MissingKeyValidationError", "ExtraKeyValidationError",
-           "SchemaMismatchValidationError", "InvalidUUIDVersionValidationError",)
+           "SchemaMismatchValidationError", "InvalidUUIDVersionValidationError",
+           "UniqueValidationError",)
 
 
 class ValidationError(ABC):
@@ -254,3 +255,15 @@ class InvalidUUIDVersionValidationError(ValidationError):
     def __repr__(self) -> str:
         return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
                 f"{self.actual_version!r}, {self.expected_version!r})")
+
+
+class UniqueValidationError(ValidationError):
+    def __init__(self, path: PathHolder, actual_value: Any) -> None:
+        self.path = path
+        self.actual_value = actual_value
+
+    def format(self, formatter: "Formatter") -> str:
+        return formatter.format_unique_error(self)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r})"

@@ -44,11 +44,14 @@ from .errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UniqueValidationError,
     ValidationError,
     ValueValidationError,
 )
 
 __all__ = ("Validator",)
+
+from ..generation._generator import Generator
 
 
 class Validator(SchemaVisitor[ValidationResult]):
@@ -250,6 +253,10 @@ class Validator(SchemaVisitor[ValidationResult]):
                 return result.add_error(
                     MaxLengthValidationError(path, value, schema.props.max_len))
 
+        if schema.props.unique and not self._validate_all_unique(value):
+            result.add_error(UniqueValidationError(path, value))
+            return result
+
         if (schema.props.type is Nil) and (schema.props.elements is Nil):
             return result
 
@@ -294,6 +301,13 @@ class Validator(SchemaVisitor[ValidationResult]):
                 result.add_error(ExtraElementValidationError(path, value, index))
 
         return result
+
+    def _validate_all_unique(self, items_list: List[Any]) -> bool:
+        for i in range(len(items_list)):
+            other_items = items_list[:i] + items_list[i + 1:]
+            if not Generator._is_item_unique(items_list[i], other_items):
+                return False
+        return True
 
     def visit_dict(self, schema: DictSchema, *,
                    value: Any = Nil, path: Nilable[PathHolder] = Nil,
