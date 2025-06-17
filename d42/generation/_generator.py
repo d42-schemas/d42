@@ -96,11 +96,21 @@ class Generator(SchemaVisitor[Any]):
         if schema.props.len is not Nil:
             length = schema.props.len
         else:
-            min_length = schema.props.min_len if (schema.props.min_len is not Nil) else STR_LEN_MIN
-            max_length = schema.props.max_len if (schema.props.max_len is not Nil) else STR_LEN_MAX
+            min_length = STR_LEN_MIN
+            max_length = STR_LEN_MAX
+
+            if schema.props.min_len is not Nil:
+                min_length = schema.props.min_len
+                max_length = max(max_length, min_length)
+
+            if schema.props.max_len is not Nil:
+                max_length = schema.props.max_len
+                min_length = min(min_length, max_length)
+
             if schema.props.substr is not Nil:
                 min_length = max(min_length, len(schema.props.substr))
-                max_length = max(max_length, len(schema.props.substr))
+                max_length = max(max_length, min_length)
+
             length = self._random.random_int(min_length, max_length)
 
         if schema.props.alphabet is not Nil:
@@ -123,20 +133,27 @@ class Generator(SchemaVisitor[Any]):
                 return self._generate_unique_elements(elements, **kwargs)
             return [elem.__accept__(self, **kwargs) for elem in elements]
 
-        is_length_specified = False
         if schema.props.len is not Nil:
             length = schema.props.len
-            is_length_specified = True
         else:
             min_length = LIST_LEN_MIN
+            max_length = LIST_LEN_MAX
+
             if schema.props.min_len is not Nil:
                 min_length = schema.props.min_len
-                is_length_specified = True
-            max_length = LIST_LEN_MAX
+                max_length = max(max_length, min_length)
+
             if schema.props.max_len is not Nil:
                 max_length = schema.props.max_len
-                is_length_specified = True
+                min_length = min(min_length, max_length)
+
             length = self._random.random_int(min_length, max_length)
+
+        is_length_specified = (
+            schema.props.len is not Nil or
+            schema.props.min_len is not Nil or
+            schema.props.max_len is not Nil
+        )
 
         if schema.props.type is not Nil:
             if schema.props.unique:
