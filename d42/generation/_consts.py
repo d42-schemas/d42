@@ -1,4 +1,5 @@
 import string
+import sys
 
 INT_MIN = -(2 ** 63)
 INT_MAX = 2 ** 63 - 1
@@ -11,3 +12,5 @@ LIST_LEN_MIN = 0
 LIST_LEN_MAX = 16
 BYTES_LEN_MIN = 0
 BYTES_LEN_MAX = 32
+
+MAX_UNIQUE_GENERATION_ATTEMPTS = sys.getrecursionlimit()

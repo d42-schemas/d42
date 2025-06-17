@@ -51,8 +51,6 @@ from .errors import (
 
 __all__ = ("Validator",)
 
-from ..generation._generator import Generator
-
 
 class Validator(SchemaVisitor[ValidationResult]):
     def __init__(self, *,
@@ -302,10 +300,16 @@ class Validator(SchemaVisitor[ValidationResult]):
 
         return result
 
-    def _validate_all_unique(self, items_list: List[Any]) -> bool:
-        for i in range(len(items_list)):
-            other_items = items_list[:i] + items_list[i + 1:]
-            if not Generator._is_item_unique(items_list[i], other_items):
+    def _validate_all_unique(self, elements: List[Any]) -> bool:
+        for i in range(len(elements)):
+            other_elements = elements[:i] + elements[i + 1:]
+            if not self._is_elem_unique(elements[i], other_elements):
+                return False
+        return True
+
+    def _is_elem_unique(self, elem: Any, elements: List[Any]) -> bool:
+        for existing_elem in elements:
+            if elem == existing_elem:
                 return False
         return True
 
