@@ -1,6 +1,5 @@
-import sys
 from datetime import date, datetime, timedelta
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict, List
 from uuid import UUID, uuid4
 
 from niltype import Nil
@@ -33,6 +32,7 @@ from ._consts import (
     INT_MIN,
     LIST_LEN_MAX,
     LIST_LEN_MIN,
+    MAX_UNIQUE_GENERATION_ATTEMPTS,
     STR_ALPHABET,
     STR_LEN_MAX,
     STR_LEN_MIN,
@@ -116,97 +116,58 @@ class Generator(SchemaVisitor[Any]):
 
         return self._random.random_str(length, alphabet)
 
-    def _is_item_unique(item: Any, items_list: List[Any]) -> bool:
-        for existing_item in items_list:
-            if item == existing_item:
-                return False
-        return True
-
-    def _generate_unique_items(self, generate_fn: Callable[[], Any],
-                               target_count: int) -> List[Any]:
-        if target_count == 0:
-            return []
-
-        unique_items: List[Any] = []
-        max_attempts = sys.getrecursionlimit()
-
-        while len(unique_items) < target_count:
-            # Try to generate a unique item with limited attempts
-            attempts_for_this_item = 0
-            unique_found = False
-
-            while attempts_for_this_item < max_attempts:
-                new_item = generate_fn()
-                attempts_for_this_item += 1
-
-                if Generator._is_item_unique(new_item, unique_items):
-                    unique_items.append(new_item)
-                    unique_found = True
-                    break
-
-            if not unique_found:
-                raise RuntimeError("Failed to generate a unique value after exhausting attempts")
-
-        return unique_items
-
     def visit_list(self, schema: ListSchema, **kwargs: Any) -> List[Any]:
-        if schema.props.elements is Nil and schema.props.type is Nil:
-            if (schema.props.len is Nil and schema.props.min_len is
-                    Nil and schema.props.max_len is Nil):
-                self._random.random_int(LIST_LEN_MIN, LIST_LEN_MAX)
-                return []
-
-            if schema.props.len is not Nil:
-                return [[] for _ in range(schema.props.len)]
-            elif schema.props.min_len is not Nil or schema.props.max_len is not Nil:
-                min_len = schema.props.min_len if schema.props.min_len is not Nil else LIST_LEN_MIN
-                max_len = schema.props.max_len if schema.props.max_len is not Nil else LIST_LEN_MAX
-                return [[] for _ in range(self._random.random_int(min_len, max_len))]
-
         if schema.props.elements is not Nil:
-            elements = [e for e in schema.props.elements if not is_ellipsis(e)]
-            if not elements:
-                return []
+            elements = [elem for elem in schema.props.elements if not is_ellipsis(elem)]
+            if schema.props.unique:
+                return self._generate_unique_elements(elements, **kwargs)
+            return [elem.__accept__(self, **kwargs) for elem in elements]
 
-            if not schema.props.unique:
-                return [elem.__accept__(self, **kwargs) for elem in elements]
-
-            result: List[Any] = []
-            max_attempts = sys.getrecursionlimit()
-            for elem in elements:
-                attempts = 0
-                while attempts < max_attempts:
-                    item = elem.__accept__(self, **kwargs)
-                    attempts += 1
-                    if Generator._is_item_unique(item, result):
-                        result.append(item)
-                        break
-                else:
-                    raise RuntimeError(
-                        "Failed to generate a unique value after exhausting attempts")
-            return result
+        is_length_specified = False
+        if schema.props.len is not Nil:
+            length = schema.props.len
+            is_length_specified = True
+        else:
+            min_length = LIST_LEN_MIN
+            if schema.props.min_len is not Nil:
+                min_length = schema.props.min_len
+                is_length_specified = True
+            max_length = LIST_LEN_MAX
+            if schema.props.max_len is not Nil:
+                max_length = schema.props.max_len
+                is_length_specified = True
+            length = self._random.random_int(min_length, max_length)
 
         if schema.props.type is not Nil:
-            if schema.props.len is not Nil:
-                length = schema.props.len
-            elif schema.props.min_len is not Nil or schema.props.max_len is not Nil:
-                min_len = schema.props.min_len if schema.props.min_len is not Nil else LIST_LEN_MIN
-                max_len = schema.props.max_len if schema.props.max_len is not Nil else LIST_LEN_MAX
-                length = self._random.random_int(min_len, max_len)
-            else:
-                length = self._random.random_int(LIST_LEN_MIN, LIST_LEN_MAX)
-
-            schema_type = schema.props.type
-
-            def generate_fn() -> Any:
-                return schema_type.__accept__(self, **kwargs)
-
             if schema.props.unique:
-                return self._generate_unique_items(generate_fn=generate_fn, target_count=length)
+                return self._generate_unique_elements([schema.props.type] * length, **kwargs)
+            return [schema.props.type.__accept__(self, **kwargs) for _ in range(length)]
 
-            return [generate_fn() for _ in range(length)]
-
+        if is_length_specified:
+            return [[] for _ in range(length)]
         return []
+
+    def _generate_unique_elements(self, elements: List[GenericSchema], **kwargs: Any) -> List[Any]:
+        max_attempts = MAX_UNIQUE_GENERATION_ATTEMPTS
+
+        generated: List[Any] = []
+        for elem in elements:
+            for _ in range(max_attempts):
+                item = elem.__accept__(self, **kwargs)
+                if self._is_elem_unique(item, generated):
+                    generated.append(item)
+                    break
+            else:
+                raise RuntimeError(
+                    f"Failed to generate a unique item {elem} after {max_attempts} attempts"
+                )
+        return generated
+
+    def _is_elem_unique(self, elem: Any, elements: List[Any]) -> bool:
+        for existing_elem in elements:
+            if elem == existing_elem:
+                return False
+        return True
 
     def visit_dict(self, schema: DictSchema, **kwargs: Any) -> Dict[Any, Any]:
         generated: Dict[Any, Any] = {}
@@ -237,8 +198,6 @@ class Generator(SchemaVisitor[Any]):
 
     def visit_type_alias(self, schema: GenericTypeAliasSchema[TypeAliasPropsType],
                          **kwargs: Any) -> Any:
-        if schema.props.type is Nil:
-            return None
         return schema.props.type.__accept__(self, **kwargs)
 
     def visit_datetime(self, schema: DateTimeSchema, **kwargs: Any) -> datetime:
