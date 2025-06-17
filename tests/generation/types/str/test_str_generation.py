@@ -268,3 +268,36 @@ def test_str_regex_pattern_generation(*, generate, random_):
         assert random_.mock_calls == [
             call.random_int(1, 32)
         ]
+
+
+def test_str_min_length_exceeding_max_limit(*, generate, random_):
+    with given:
+        str_min_len = STR_LEN_MAX + 1
+        sch = schema.str.len(str_min_len, ...)
+
+    with when:
+        res = generate(sch)
+
+    with then:
+        assert len(res) == str_min_len
+        assert random_.mock_calls == [
+            call.random_int(str_min_len, str_min_len),
+            call.random_str(str_min_len, STR_ALPHABET),
+        ]
+
+
+@pytest.mark.skipif(STR_LEN_MIN < 1, reason="Test only applicable when STR_LEN_MIN >= 1")
+def test_str_max_length_below_min_limit(*, generate, random_):
+    with given:
+        str_max_len = STR_LEN_MIN - 1
+        sch = schema.str.len(..., str_max_len)
+
+    with when:
+        res = generate(sch)
+
+    with then:
+        assert len(res) == str_max_len
+        assert random_.mock_calls == [
+            call.random_int(str_max_len, str_max_len),
+            call.random_str(str_max_len, STR_ALPHABET),
+        ]

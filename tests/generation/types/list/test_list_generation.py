@@ -1,5 +1,6 @@
 from unittest.mock import call
 
+import pytest
 from baby_steps import given, then, when
 
 from d42 import schema
@@ -228,3 +229,30 @@ def test_list_of_elements_min_max_len_generation(*, generate, generator, random_
         assert res == [val] * list_len
         assert random_.mock_calls == [call.random_int(list_min_len, list_max_len)]
         assert type_.mock_calls == [call.__accept__(generator)] * list_len
+
+
+def test_list_min_length_exceeding_max_limit(*, generate, random_):
+    with given:
+        list_min_len = LIST_LEN_MAX + 1
+        sch = schema.list.len(list_min_len, ...)
+
+    with when:
+        res = generate(sch)
+
+    with then:
+        assert res == [[]] * list_min_len
+        assert random_.mock_calls == [call.random_int(list_min_len, list_min_len)]
+
+
+@pytest.mark.skipif(LIST_LEN_MIN < 1, reason="Test only applicable when LIST_LEN_MIN >= 1")
+def test_list_max_length_below_min_limit(*, generate, random_):
+    with given:
+        list_max_len = LIST_LEN_MIN - 1
+        sch = schema.list.len(..., list_max_len)
+
+    with when:
+        res = generate(sch)
+
+    with then:
+        assert res == [[]] * list_max_len
+        assert random_.mock_calls == [call.random_int(list_max_len, list_max_len)]
