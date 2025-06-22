@@ -80,6 +80,11 @@ class Substitutor(SchemaVisitor[GenericSchema]):
         return schema.__class__(schema.props.update(value=value))
 
     def visit_str(self, schema: StrSchema, *, value: Any = Nil, **kwargs: Any) -> StrSchema:
+        if schema.props.inner_schema is not Nil:
+            # do we need to type cast here?
+            inner_schema = schema.props.inner_schema.__accept__(self, value=value, **kwargs)
+            return schema.__class__(schema.props.update(inner_schema=inner_schema))
+
         result = schema.__accept__(self._validator, value=value)
         if result.has_errors():
             raise make_substitution_error(result, self._formatter)

@@ -81,6 +81,10 @@ class Representor(SchemaVisitor[str]):
     def visit_str(self, schema: StrSchema, *, indent: int = 0, **kwargs: Any) -> str:
         r = f"{self._name}.str"
 
+        if schema.props.inner_schema is not Nil:
+            r += " << " + schema.props.inner_schema.__accept__(self, indent=indent, **kwargs)
+            return r
+
         if schema.props.value is not Nil:
             r += f"({schema.props.value!r})"
 
