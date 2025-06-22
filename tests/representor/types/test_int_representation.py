@@ -77,3 +77,14 @@ def test_int_min_max_with_value_representation():
 
     with then:
         assert res == "schema.int(2).min(1).max(3)"
+
+
+def test_int_multiple_of_representation():
+    with given:
+        sch = schema.int.multiple_of(10)
+
+    with when:
+        res = represent(sch)
+
+    with then:
+        assert res == "schema.int.multiple_of(10)"
