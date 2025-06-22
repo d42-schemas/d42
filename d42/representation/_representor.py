@@ -61,6 +61,20 @@ class Representor(SchemaVisitor[str]):
 
         return r
 
+    def visit_int32(self, schema: IntSchema, *, indent: int = 0, **kwargs: Any) -> str:
+        r = f"{self._name}.int32"
+
+        if schema.props.value is not Nil:
+            r += f"({schema.props.value!r})"
+
+        if schema.props.min is not Nil:
+            r += f".min({schema.props.min!r})"
+
+        if schema.props.max is not Nil:
+            r += f".max({schema.props.max!r})"
+
+        return r
+
     def visit_float(self, schema: FloatSchema, *, indent: int = 0, **kwargs: Any) -> str:
         r = f"{self._name}.float"
 
