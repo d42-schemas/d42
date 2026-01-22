@@ -4,7 +4,7 @@ from typing import Any
 from niltype import Nil, Nilable
 from th import PathHolder
 
-from d42.declaration.types import DictSchema, ListSchema
+from d42.declaration.types import DictSchema, ListSchema, optional
 from d42.utils import is_ellipsis
 from d42.validation import ValidationResult, Validator
 from d42.validation.errors import (
@@ -72,6 +72,8 @@ class SubstitutorValidator(Validator):
             if is_ellipsis(key):
                 continue
             if key in value:
+                if isinstance(value[key], optional.absent.__class__):
+                    continue
                 if is_ellipsis(value[key]):
                     continue
                 nested_path = deepcopy(path)[key]
@@ -80,6 +82,8 @@ class SubstitutorValidator(Validator):
 
         if (... not in schema.props.keys) and (set(schema.props.keys) != set(value)):
             for key, val in value.items():
+                if isinstance(val, optional.absent.__class__):
+                    continue
                 if key not in schema.props.keys:
                     result.add_error(ExtraKeyValidationError(path, value, key))
 
