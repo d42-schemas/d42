@@ -13,8 +13,8 @@ __all__ = ("ValidationError", "TypeValidationError", "ValueValidationError",
            "MinLengthValidationError", "MaxLengthValidationError", "AlphabetValidationError",
            "SubstrValidationError", "RegexValidationError", "MissingElementValidationError",
            "ExtraElementValidationError", "MissingKeyValidationError", "ExtraKeyValidationError",
-           "SchemaMismatchValidationError", "InvalidUUIDVersionValidationError",
-           "UniqueValidationError",)
+           "UnexpectedKeyValidationError", "SchemaMismatchValidationError",
+           "InvalidUUIDVersionValidationError", "UniqueValidationError",)
 
 
 class ValidationError(ABC):
@@ -220,6 +220,20 @@ class ExtraKeyValidationError(ValidationError):
     def __repr__(self) -> str:
         return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
                 f"{self.extra_key!r})")
+
+
+class UnexpectedKeyValidationError(ValidationError):
+    def __init__(self, path: PathHolder, actual_value: Any, unexpected_key: Any) -> None:
+        self.path = path
+        self.actual_value = actual_value
+        self.unexpected_key = unexpected_key
+
+    def format(self, formatter: "Formatter") -> str:
+        return formatter.format_unexpected_key_error(self)
+
+    def __repr__(self) -> str:
+        return (f"{self.__class__.__name__}({self.path!r}, {self.actual_value!r}, "
+                f"{self.unexpected_key!r})")
 
 
 class SchemaMismatchValidationError(ValidationError):

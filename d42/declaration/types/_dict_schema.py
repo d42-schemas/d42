@@ -22,6 +22,10 @@ class DictProps(Props):
     def keys(self) -> Nilable[Dict[Any, Tuple[GenericSchema, bool]]]:
         return self.get("keys")
 
+    @property
+    def absent_keys(self) -> Nilable[set]:
+        return self.get("absent_keys")
+
 
 class DictSchema(Schema[DictProps]):
     if sys.version_info >= (3, 10):

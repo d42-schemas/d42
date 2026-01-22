@@ -45,6 +45,7 @@ from .errors import (
     SubstrValidationError,
     TypeValidationError,
     UniqueValidationError,
+    UnexpectedKeyValidationError,
     ValidationError,
     ValueValidationError,
 )
@@ -337,9 +338,16 @@ class Validator(SchemaVisitor[ValidationResult]):
                 if not is_optional:
                     result.add_error(MissingKeyValidationError(path, value, key))
 
+        if schema.props.absent_keys is not Nil:
+            for key in schema.props.absent_keys:
+                if key in value:
+                    result.add_error(UnexpectedKeyValidationError(path, value, key))
+
         if (... not in schema.props.keys):
+            ignored_keys = (schema.props.absent_keys if schema.props.absent_keys is not Nil
+                            else set())
             for key, val in value.items():
-                if key not in schema.props.keys:
+                if key not in schema.props.keys and key not in ignored_keys:
                     result.add_error(ExtraKeyValidationError(path, value, key))
 
         return result
