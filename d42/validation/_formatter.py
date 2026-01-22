@@ -21,6 +21,7 @@ from .errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UnexpectedKeyValidationError,
     UniqueValidationError,
     ValueValidationError,
 )
@@ -133,6 +134,11 @@ class Formatter(AbstractFormatter):
     def format_extra_key_error(self, error: ExtraKeyValidationError) -> str:
         formatted_path = self._at_path(error.path)
         return f"Value{formatted_path} contains extra key {error.extra_key!r}"
+
+    def format_unexpected_key_error(self, error: UnexpectedKeyValidationError) -> str:
+        path = deepcopy(error.path)
+        formatted_path = self._format_path(path[error.unexpected_key])
+        return f"Key {formatted_path} must be absent"
 
     def format_schema_missmatch_error(self, error: SchemaMismatchValidationError) -> str:
         return self._format_schema_missmatch_error(error, schema_path=[])

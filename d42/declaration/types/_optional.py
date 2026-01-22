@@ -5,7 +5,16 @@ from .._is_ellipsis import is_ellipsis
 __all__ = ("optional",)
 
 
+class _Absent:
+    """Marker to indicate that an optional key must be absent in the data."""
+
+    def __repr__(self) -> str:
+        return "optional.absent"
+
+
 class optional:
+    absent = _Absent()
+
     def __init__(self, key: Any) -> None:
         if is_ellipsis(key):
             raise TypeError(key)
