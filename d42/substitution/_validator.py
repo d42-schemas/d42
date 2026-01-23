@@ -74,6 +74,8 @@ class SubstitutorValidator(Validator):
             if key in value:
                 if isinstance(value[key], optional.absent.__class__):
                     continue
+                if isinstance(value[key], optional.present.__class__):
+                    continue
                 if is_ellipsis(value[key]):
                     continue
                 nested_path = deepcopy(path)[key]

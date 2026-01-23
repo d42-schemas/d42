@@ -12,8 +12,16 @@ class _Absent:
         return "optional.absent"
 
 
+class _Present:
+    """Marker to indicate that a key must be present in the data (required field)."""
+
+    def __repr__(self) -> str:
+        return "optional.present"
+
+
 class optional:
     absent = _Absent()
+    present = _Present()
 
     def __init__(self, key: Any) -> None:
         if is_ellipsis(key):
