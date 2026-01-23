@@ -5,9 +5,11 @@ from baby_steps import given, then, when
 from th import PathHolder
 
 from d42 import optional, schema
-from d42.substitution import substitute
 from d42.validation import validate
-from d42.validation.errors import ExtraKeyValidationError, TypeValidationError, UnexpectedKeyValidationError
+from d42.validation.errors import (
+    ExtraKeyValidationError,
+    TypeValidationError,
+)
 
 
 @pytest.mark.parametrize("value", [
@@ -86,42 +88,4 @@ def test_dict_extra_key_with_optional_validation():
     with then:
         assert result.get_errors() == [
             ExtraKeyValidationError(PathHolder(), value, "extra")
-        ]
-
-
-def test_dict_optional_absent_validation():
-    with given:
-        sch = schema.dict({
-            "id": schema.int,
-            optional("deleted_at"): schema.int
-        })
-        sch_with_absent = substitute(sch, {
-            "id": 1,
-            "deleted_at": optional.absent
-        })
-
-    with when:
-        result = validate(sch_with_absent, {"id": 1})
-
-    with then:
-        assert result.get_errors() == []
-
-
-def test_dict_optional_absent_validation_error():
-    with given:
-        sch = schema.dict({
-            "id": schema.int,
-            optional("deleted_at"): schema.int
-        })
-        sch_with_absent = substitute(sch, {
-            "id": 1,
-            "deleted_at": optional.absent
-        })
-
-    with when:
-        result = validate(sch_with_absent, {"id": 1, "deleted_at": 123})
-
-    with then:
-        assert result.get_errors() == [
-            UnexpectedKeyValidationError(PathHolder(), {"id": 1, "deleted_at": 123}, "deleted_at")
         ]

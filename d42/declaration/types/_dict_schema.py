@@ -23,7 +23,7 @@ class DictProps(Props):
         return self.get("keys")
 
     @property
-    def absent_keys(self) -> Nilable[set]:
+    def absent_keys(self) -> Nilable[set[Any]]:
         return self.get("absent_keys")
 
 
