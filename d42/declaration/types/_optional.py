@@ -2,7 +2,7 @@ from typing import Any
 
 from .._is_ellipsis import is_ellipsis
 
-__all__ = ("optional",)
+__all__ = ("optional", "is_absent", "is_present")
 
 
 class _Absent:
@@ -17,6 +17,14 @@ class _Present:
 
     def __repr__(self) -> str:
         return "optional.present"
+
+
+def is_absent(value: Any) -> bool:
+    return isinstance(value, _Absent)
+
+
+def is_present(value: Any) -> bool:
+    return isinstance(value, _Present)
 
 
 class optional:

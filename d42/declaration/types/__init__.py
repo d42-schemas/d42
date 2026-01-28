@@ -8,6 +8,7 @@ from ._float_schema import FloatProps, FloatSchema
 from ._int_schema import IntProps, IntSchema
 from ._list_schema import ListProps, ListSchema
 from ._none_schema import NoneProps, NoneSchema
+from ._optional import is_absent, is_present
 from ._schema import GenericSchema, Schema
 from ._str_schema import StrProps, StrSchema
 from ._type_alias_schema import (
@@ -23,4 +24,5 @@ __all__ = ("AnyProps", "AnySchema", "BoolProps", "BoolSchema", "BytesProps", "By
            "ListProps", "ListSchema", "NoneProps", "NoneSchema", "StrProps", "StrSchema",
            "UUID4Props", "UUID4Schema", "DateProps", "DateSchema", "DateTimeProps",
            "DateTimeSchema", "TypeAliasSchema", "TypeAliasProps", "GenericTypeAliasSchema",
-           "TypeAliasPropsType", "GenericSchema", "Schema", "optional", )
+           "TypeAliasPropsType", "GenericSchema", "Schema", "optional", "is_absent",
+           "is_present", )
