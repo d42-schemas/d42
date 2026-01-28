@@ -20,6 +20,8 @@ from d42.declaration.types import (
     TypeAliasPropsType,
     UUID4Schema,
     optional,
+    is_absent,
+    is_present,
 )
 from d42.utils import from_native, is_ellipsis
 from d42.validation import Formatter, Validator
@@ -171,9 +173,9 @@ class Substitutor(SchemaVisitor[GenericSchema]):
 
         if schema.props.keys is Nil or (len(schema.props.keys) == 1 and ... in schema.props.keys):
             for key, val in value.items():
-                if isinstance(val, optional.absent.__class__):
+                if is_absent(val):
                     absent_keys.add(key)
-                elif isinstance(val, optional.present.__class__):
+                elif is_present(val):
                     keys[key] = (AnySchema(), False)
                 else:
                     keys[key] = (... if is_ellipsis(val) else self._from_native(val), False)
@@ -186,14 +188,13 @@ class Substitutor(SchemaVisitor[GenericSchema]):
                 actual_key = key.key if isinstance(key, optional) else key
 
                 if actual_key in value:
-                    if isinstance(value[actual_key], optional.absent.__class__):
+                    if is_absent(value[actual_key]):
                         if not is_optional:
                             raise SubstitutionError(
                                 f"Can't mark required key {actual_key!r} as absent"
                             )
                         absent_keys.add(actual_key)
-                    elif isinstance(value[actual_key],
-                                    optional.present.__class__):
+                    elif is_present(value[actual_key]):
                         keys[actual_key] = (val, False)
                     elif is_ellipsis(value[actual_key]):
                         keys[actual_key] = (val, False)
@@ -205,10 +206,8 @@ class Substitutor(SchemaVisitor[GenericSchema]):
                 else:
                     keys[key] = (val, is_optional)
             for key, val in value.items():
-                if key not in schema.props.keys:
-                    if (not isinstance(val, optional.absent.__class__) and
-                            not isinstance(val, optional.present.__class__)):
-                        raise SubstitutionError(f"Unknown key {key!r}")
+                if key not in schema.props.keys and key not in absent_keys:
+                    raise SubstitutionError(f"Unknown key {key!r}")
 
         props = schema.props.update(keys=keys)
         if absent_keys:
