@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Dict, Generator, KeysView, Tuple
+from typing import Any, Dict, Generator, KeysView, Tuple, Union
 
 from niltype import Nil, Nilable
 
@@ -8,7 +8,7 @@ from .._props import Props
 from .._schema_visitor import SchemaVisitor
 from .._schema_visitor import SchemaVisitorReturnType as ReturnType
 from ..errors import DeclarationError, make_already_declared_error, make_invalid_type_error
-from ._optional import optional
+from ._optional import _Absent, is_absent, optional
 from ._schema import GenericSchema, Schema
 
 __all__ = ("DictSchema", "DictProps", "optional",)
@@ -19,12 +19,8 @@ if sys.version_info >= (3, 10):
 
 class DictProps(Props):
     @property
-    def keys(self) -> Nilable[Dict[Any, Tuple[GenericSchema, bool]]]:
+    def keys(self) -> Nilable[Dict[Any, Tuple[GenericSchema, Union[bool, _Absent]]]]:
         return self.get("keys")
-
-    @property
-    def absent_keys(self) -> Nilable[set[Any]]:
-        return self.get("absent_keys")
 
 
 class DictSchema(Schema[DictProps]):
@@ -81,7 +77,8 @@ class DictSchema(Schema[DictProps]):
     def keys(self) -> KeysView[Any]:
         if self.props.keys is Nil:
             return {}.keys()
-        return self.props.keys.keys()
+        return {k: v for k, (v, opt) in self.props.keys.items()
+                if not is_absent(opt)}.keys()
 
     def __iter__(self) -> Generator[Any, None, None]:
         yield from self.keys()

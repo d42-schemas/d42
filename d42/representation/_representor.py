@@ -19,6 +19,7 @@ from d42.declaration.types import (
     StrSchema,
     TypeAliasPropsType,
     UUID4Schema,
+    is_absent,
 )
 from d42.utils import is_ellipsis
 
@@ -149,6 +150,8 @@ class Representor(SchemaVisitor[str]):
         for key, (val, is_optional) in schema.props.keys.items():
             if is_ellipsis(key):
                 key_repr = val_repr = "..."
+            elif is_absent(is_optional):
+                continue
             else:
                 key_repr = f"optional({key!r})" if is_optional else repr(key)
                 val_repr = val.__accept__(self, indent=indent + self._indent, **kwargs)

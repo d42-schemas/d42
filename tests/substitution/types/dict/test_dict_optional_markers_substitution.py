@@ -1,7 +1,10 @@
 from baby_steps import given, then, when
+from pytest import raises
 
 from d42 import optional, schema
+from d42.declaration.types import is_absent
 from d42.substitution import substitute
+from d42.substitution.errors import SubstitutionError
 
 
 def test_dict_optional_absent_substitution():
@@ -18,8 +21,9 @@ def test_dict_optional_absent_substitution():
         })
 
     with then:
-        assert "deleted_at" not in res.keys()
-        assert res.props.absent_keys == {"deleted_at"}
+        assert set(res.keys()) == {"id"}
+        assert is_absent(res.props.keys["deleted_at"][1])
+        assert res != sch
 
 
 def test_dict_multiple_optional_absent_substitution():
@@ -38,9 +42,10 @@ def test_dict_multiple_optional_absent_substitution():
         })
 
     with then:
-        assert "deleted_at" not in res.keys()
-        assert "created_at" not in res.keys()
-        assert res.props.absent_keys == {"deleted_at", "created_at"}
+        assert set(res.keys()) == {"id"}
+        assert is_absent(res.props.keys["deleted_at"][1])
+        assert is_absent(res.props.keys["created_at"][1])
+        assert res != sch
 
 
 def test_dict_nested_optional_absent_substitution():
@@ -64,8 +69,9 @@ def test_dict_nested_optional_absent_substitution():
 
     with then:
         user_schema = res.props.keys["users"][0].props.elements[0]
-        assert "deleted_at" not in user_schema.keys()
-        assert user_schema.props.absent_keys == {"deleted_at"}
+        assert set(user_schema.keys()) == {"id"}
+        assert is_absent(user_schema.props.keys["deleted_at"][1])
+        assert res != sch
 
 
 def test_dict_optional_present_substitution():
@@ -142,3 +148,35 @@ def test_dict_nested_optional_present_substitution():
             ])
         })
         assert res != sch
+
+
+def test_dict_required_key_optional_absent_error():
+    with given:
+        sch = schema.dict({
+            "id": schema.int,
+        })
+
+    with when, raises(Exception) as exception:
+        substitute(sch, {
+            "id": optional.absent,
+        })
+
+    with then:
+        assert exception.type is SubstitutionError
+
+
+def test_dict_required_key_optional_present_is_noop():
+    with given:
+        sch = schema.dict({
+            "id": schema.int,
+        })
+
+    with when:
+        res = substitute(sch, {
+            "id": optional.present,
+        })
+
+    with then:
+        assert res == schema.dict({
+            "id": schema.int,
+        })

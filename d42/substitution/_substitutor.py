@@ -19,9 +19,9 @@ from d42.declaration.types import (
     StrSchema,
     TypeAliasPropsType,
     UUID4Schema,
-    optional,
     is_absent,
     is_present,
+    optional,
 )
 from d42.utils import from_native, is_ellipsis
 from d42.validation import Formatter, Validator
@@ -169,14 +169,11 @@ class Substitutor(SchemaVisitor[GenericSchema]):
             raise make_substitution_error(result, self._formatter)
 
         keys: Dict[Any, Any] = {}
-        absent_keys: set[Any] = set()
 
         if schema.props.keys is Nil or (len(schema.props.keys) == 1 and ... in schema.props.keys):
             for key, val in value.items():
                 if is_absent(val):
-                    absent_keys.add(key)
-                elif is_present(val):
-                    keys[key] = (AnySchema(), False)
+                    keys[key] = (self._from_native(None), optional.absent)
                 else:
                     keys[key] = (... if is_ellipsis(val) else self._from_native(val), False)
             if (schema.props.keys is not Nil) and (... in schema.props.keys):
@@ -185,33 +182,26 @@ class Substitutor(SchemaVisitor[GenericSchema]):
             if ... in value:
                 raise SubstitutionError("Can't substitute ...")
             for key, (val, is_optional) in schema.props.keys.items():
-                actual_key = key.key if isinstance(key, optional) else key
-
-                if actual_key in value:
-                    if is_absent(value[actual_key]):
+                if key in value:
+                    if is_absent(value[key]):
                         if not is_optional:
                             raise SubstitutionError(
-                                f"Can't mark required key {actual_key!r} as absent"
+                                f"Cannot use optional.absent for non-optional key '{key}'"
                             )
-                        absent_keys.add(actual_key)
-                    elif is_present(value[actual_key]):
-                        keys[actual_key] = (val, False)
-                    elif is_ellipsis(value[actual_key]):
-                        keys[actual_key] = (val, False)
+                        keys[key] = (val, optional.absent)
+                    elif is_present(value[key]):
+                        keys[key] = (val, False)
+                    elif is_ellipsis(value[key]):
+                        keys[key] = (val, False)
                     else:
-                        keys[actual_key] = (
-                            val.__accept__(self, value=value[actual_key], **kwargs),
-                            False
-                        )
+                        keys[key] = (val.__accept__(self, value=value[key], **kwargs), False)
                 else:
                     keys[key] = (val, is_optional)
             for key, val in value.items():
-                if key not in schema.props.keys and key not in absent_keys:
+                if key not in schema.props.keys:
                     raise SubstitutionError(f"Unknown key {key!r}")
 
         props = schema.props.update(keys=keys)
-        if absent_keys:
-            props = props.update(absent_keys=absent_keys)
         return schema.__class__(props)
 
     def visit_any(self, schema: AnySchema, *, value: Any = Nil, **kwargs: Any) -> AnySchema:
