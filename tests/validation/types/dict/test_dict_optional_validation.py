@@ -6,10 +6,7 @@ from th import PathHolder
 
 from d42 import optional, schema
 from d42.validation import validate
-from d42.validation.errors import (
-    ExtraKeyValidationError,
-    TypeValidationError,
-)
+from d42.validation.errors import ExtraKeyValidationError, TypeValidationError
 
 
 @pytest.mark.parametrize("value", [

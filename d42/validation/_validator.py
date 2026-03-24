@@ -24,6 +24,7 @@ from d42.declaration.types import (
     StrSchema,
     TypeAliasPropsType,
     UUID4Schema,
+    is_absent,
 )
 from d42.utils import is_ellipsis
 
@@ -330,6 +331,10 @@ class Validator(SchemaVisitor[ValidationResult]):
         for key, (val, is_optional) in schema.props.keys.items():
             if is_ellipsis(key):
                 continue
+            if is_absent(is_optional):
+                if key in value:
+                    result.add_error(UnexpectedKeyValidationError(path, value, key))
+                continue
             if key in value:
                 nested_path = deepcopy(path)[key]
                 res = val.__accept__(self, value=value[key], path=nested_path, **kwargs)
@@ -338,15 +343,9 @@ class Validator(SchemaVisitor[ValidationResult]):
                 if not is_optional:
                     result.add_error(MissingKeyValidationError(path, value, key))
 
-        if schema.props.absent_keys is not Nil:
-            for key in schema.props.absent_keys:
-                if key in value:
-                    result.add_error(UnexpectedKeyValidationError(path, value, key))
-
         if (... not in schema.props.keys):
             for key, val in value.items():
-                absent_keys = schema.props.absent_keys or set()
-                if key not in schema.props.keys and key not in absent_keys:
+                if key not in schema.props.keys:
                     result.add_error(ExtraKeyValidationError(path, value, key))
 
         return result
