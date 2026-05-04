@@ -45,8 +45,8 @@ from .errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
-    UniqueValidationError,
     UnexpectedKeyValidationError,
+    UniqueValidationError,
     ValidationError,
     ValueValidationError,
 )

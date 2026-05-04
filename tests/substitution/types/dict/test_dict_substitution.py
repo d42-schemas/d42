@@ -337,9 +337,10 @@ def test_dict_optional_absent_validation_error():
         }
 
     with when:
+        from th import PathHolder
+
         from d42.validation import validate
         from d42.validation.errors import UnexpectedKeyValidationError
-        from th import PathHolder
         result = validate(substituted, value)
 
     with then:
