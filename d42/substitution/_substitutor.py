@@ -19,6 +19,9 @@ from d42.declaration.types import (
     StrSchema,
     TypeAliasPropsType,
     UUID4Schema,
+    is_absent,
+    is_present,
+    optional,
 )
 from d42.utils import from_native, is_ellipsis
 from d42.validation import Formatter, Validator
@@ -166,9 +169,13 @@ class Substitutor(SchemaVisitor[GenericSchema]):
             raise make_substitution_error(result, self._formatter)
 
         keys: Dict[Any, Any] = {}
+
         if schema.props.keys is Nil or (len(schema.props.keys) == 1 and ... in schema.props.keys):
             for key, val in value.items():
-                keys[key] = (... if is_ellipsis(val) else self._from_native(val), False)
+                if is_absent(val):
+                    keys[key] = (self._from_native(None), optional.absent)
+                else:
+                    keys[key] = (... if is_ellipsis(val) else self._from_native(val), False)
             if (schema.props.keys is not Nil) and (... in schema.props.keys):
                 keys[...] = (..., False)
         else:
@@ -176,7 +183,15 @@ class Substitutor(SchemaVisitor[GenericSchema]):
                 raise SubstitutionError("Can't substitute ...")
             for key, (val, is_optional) in schema.props.keys.items():
                 if key in value:
-                    if is_ellipsis(value[key]):
+                    if is_absent(value[key]):
+                        if not is_optional:
+                            raise SubstitutionError(
+                                f"Cannot use optional.absent for non-optional key '{key}'"
+                            )
+                        keys[key] = (val, optional.absent)
+                    elif is_present(value[key]):
+                        keys[key] = (val, False)
+                    elif is_ellipsis(value[key]):
                         keys[key] = (val, False)
                     else:
                         keys[key] = (val.__accept__(self, value=value[key], **kwargs), False)
@@ -186,7 +201,8 @@ class Substitutor(SchemaVisitor[GenericSchema]):
                 if key not in schema.props.keys:
                     raise SubstitutionError(f"Unknown key {key!r}")
 
-        return schema.__class__(schema.props.update(keys=keys))
+        props = schema.props.update(keys=keys)
+        return schema.__class__(props)
 
     def visit_any(self, schema: AnySchema, *, value: Any = Nil, **kwargs: Any) -> AnySchema:
         result = schema.__accept__(self._validator, value=value)

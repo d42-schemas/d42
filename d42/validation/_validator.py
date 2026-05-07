@@ -24,6 +24,7 @@ from d42.declaration.types import (
     StrSchema,
     TypeAliasPropsType,
     UUID4Schema,
+    is_absent,
 )
 from d42.utils import is_ellipsis
 
@@ -44,6 +45,7 @@ from .errors import (
     SchemaMismatchValidationError,
     SubstrValidationError,
     TypeValidationError,
+    UnexpectedKeyValidationError,
     UniqueValidationError,
     ValidationError,
     ValueValidationError,
@@ -328,6 +330,10 @@ class Validator(SchemaVisitor[ValidationResult]):
 
         for key, (val, is_optional) in schema.props.keys.items():
             if is_ellipsis(key):
+                continue
+            if is_absent(is_optional):
+                if key in value:
+                    result.add_error(UnexpectedKeyValidationError(path, value, key))
                 continue
             if key in value:
                 nested_path = deepcopy(path)[key]

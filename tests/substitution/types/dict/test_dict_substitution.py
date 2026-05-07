@@ -295,3 +295,71 @@ def test_dict_ellipsis_substitution_error():
 
     with then:
         assert exception.type is SubstitutionError
+
+
+def test_dict_optional_absent_validation():
+    with given:
+        sch = schema.dict({
+            "id": schema.int,
+            "name": schema.str,
+            optional("deleted_at"): schema.str,
+        })
+        substituted = substitute(sch, {
+            "id": 1,
+            "name": "Bob",
+            "deleted_at": optional.absent,
+        })
+
+    with when:
+        from d42.validation import validate
+        result = validate(substituted, {
+            "id": 1,
+            "name": "Bob",
+        })
+
+    with then:
+        assert result.get_errors() == []
+
+
+def test_dict_optional_absent_validation_error():
+    with given:
+        sch = schema.dict({
+            "id": schema.int,
+            optional("deleted_at"): schema.str,
+        })
+        substituted = substitute(sch, {
+            "id": 1,
+            "deleted_at": optional.absent,
+        })
+        value = {
+            "id": 1,
+            "deleted_at": "2024-01-01",
+        }
+
+    with when:
+        from th import PathHolder
+
+        from d42.validation import validate
+        from d42.validation.errors import UnexpectedKeyValidationError
+        result = validate(substituted, value)
+
+    with then:
+        assert result.get_errors() == [
+            UnexpectedKeyValidationError(PathHolder(), value, "deleted_at")
+        ]
+
+
+def test_dict_optional_absent_unknown_key_error():
+    with given:
+        sch = schema.dict({
+            "id": schema.int,
+        })
+
+    with when, raises(Exception) as exception:
+        substitute(sch, {
+            "id": 1,
+            "deleted_at": optional.absent,
+        })
+
+    with then:
+        assert exception.type is SubstitutionError
