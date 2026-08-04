@@ -391,6 +391,24 @@ class Validator(SchemaVisitor[ValidationResult]):
             if error := self._validate_value(path, value, schema.props.value):
                 return result.add_error(error)
 
+        if schema.props.len is not Nil:
+            if len(value) != schema.props.len:
+                result.add_error(
+                    LengthValidationError(path, value, schema.props.len)
+                )
+
+        if schema.props.min_len is not Nil:
+            if len(value) < schema.props.min_len:
+                result.add_error(
+                    MinLengthValidationError(path, value, schema.props.min_len)
+                )
+
+        if schema.props.max_len is not Nil:
+            if len(value) > schema.props.max_len:
+                result.add_error(
+                    MaxLengthValidationError(path, value, schema.props.max_len)
+                )
+
         return result
 
     def visit_type_alias(self, schema: GenericTypeAliasSchema[TypeAliasPropsType], *,

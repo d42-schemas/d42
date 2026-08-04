@@ -180,6 +180,16 @@ class Representor(SchemaVisitor[str]):
 
         if schema.props.value is not Nil:
             r += f"({schema.props.value!r})"
+
+        if schema.props.len is not Nil:
+            r += f".len({schema.props.len!r})"
+        elif (schema.props.min_len is not Nil) and (schema.props.max_len is not Nil):
+            r += f".len({schema.props.min_len!r}, {schema.props.max_len!r})"
+        elif schema.props.min_len is not Nil:
+            r += f".len({schema.props.min_len!r}, ...)"
+        elif schema.props.max_len is not Nil:
+            r += f".len(..., {schema.props.max_len!r})"
+
         return r
 
     def visit_type_alias(self, schema: GenericTypeAliasSchema[TypeAliasPropsType],
