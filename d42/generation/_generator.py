@@ -209,7 +209,23 @@ class Generator(SchemaVisitor[Any]):
     def visit_bytes(self, schema: BytesSchema, **kwargs: Any) -> bytes:
         if schema.props.value is not Nil:
             return schema.props.value
-        length = self._random.random_int(BYTES_LEN_MIN, BYTES_LEN_MAX)
+
+        if schema.props.len is not Nil:
+            length = schema.props.len
+        else:
+            min_length = BYTES_LEN_MIN
+            max_length = BYTES_LEN_MAX
+
+            if schema.props.min_len is not Nil:
+                min_length = schema.props.min_len
+                max_length = max(max_length, min_length)
+
+            if schema.props.max_len is not Nil:
+                max_length = schema.props.max_len
+                min_length = min(min_length, max_length)
+
+            length = self._random.random_int(min_length, max_length)
+
         alphabet = STR_ALPHABET
         return self._random.random_str(length, alphabet).encode()
 
