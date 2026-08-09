@@ -174,3 +174,57 @@ def test_int_min_max_with_value_declaration():
         assert sch.props.value == value
         assert sch.props.min == min_value
         assert sch.props.max == max_value
+
+
+def test_int_multiple_of_declaration():
+    with given:
+        multiple_of_value = 3
+
+    with when:
+        sch = schema.int.multiple_of(multiple_of_value)
+
+    with then:
+        assert sch.props.multiple_of == multiple_of_value
+
+
+def test_int_invalid_multiple_of_value_type_declaration_error():
+    with when, raises(Exception) as exception:
+        schema.int.multiple_of(3.14)
+
+    with then:
+        assert exception.type is DeclarationError
+        assert str(exception.value) == ("`schema.int` value must be an instance of 'int', "
+                                        "instance of 'float' 3.14 given")
+
+
+def test_int_multiple_of_value_declaration_error():
+    with when, raises(Exception) as exception:
+        schema.int.multiple_of(0)
+
+    with then:
+        assert exception.type is DeclarationError
+        assert str(exception.value) == (
+            "`schema.int` multiple_of value must be greater than 0, 0 given"
+        )
+
+
+def test_int_value_already_declared_multiple_of_declaration_error():
+    with when, raises(Exception) as exception:
+        schema.int.multiple_of(2).multiple_of(42)
+
+    with then:
+        assert exception.type is DeclarationError
+        assert str(exception.value) == "`schema.int.multiple_of(2)` is already declared"
+
+
+def test_int_multiple_of_value_applied():
+    with given:
+        value = 6
+        multiple_of_value = 3
+
+    with when:
+        sch = schema.int(value).multiple_of(multiple_of_value)
+
+    with then:
+        assert sch.props.value == value
+        assert sch.props.multiple_of == multiple_of_value
