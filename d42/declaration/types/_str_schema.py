@@ -16,7 +16,7 @@ from ..errors import (
     make_incorrect_min_len_error,
     make_invalid_type_error,
 )
-from ._schema import Schema
+from ._schema import GenericSchema, Schema
 
 __all__ = ("StrSchema", "StrProps",)
 
@@ -53,6 +53,10 @@ class StrProps(Props):
     def pattern(self) -> Nilable[str]:
         return self.get("pattern")
 
+    @property
+    def inner_schema(self) -> Nilable[GenericSchema]:
+        return self.get("inner_schema")
+
 
 class StrSchema(Schema[StrProps]):
     if sys.version_info >= (3, 10):
@@ -86,6 +90,16 @@ class StrSchema(Schema[StrProps]):
             raise make_already_declared_error(self)
 
         return self.__class__(self.props.update(value=value))
+
+    def __lshift__(self, other: Any) -> "StrSchema":
+        if not isinstance(other, Schema):
+            raise make_invalid_type_error(self, other, (Schema,))
+
+        # assert other is not StrSchema
+
+        # assert other props are not declared
+
+        return self.__class__(self.props.update(inner_schema=other))
 
     def __declare_len(self, props: StrProps, length: Any) -> StrProps:
         if not isinstance(length, int):
